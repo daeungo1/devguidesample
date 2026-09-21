@@ -1,0 +1,69 @@
+THIRD-PARTY IMAGE ATTRIBUTION
+Retrieved and reviewed: 2026-09-21
+
+The following original images are reproduced without modification. Local file
+renaming and proportional display sizing do not change their content.
+These individual assets retain the licenses stated below. Their licenses do
+not replace the license of unrelated repository content. Names and logos in
+the originals are used for source identification, not endorsement.
+
+C1: ../images/copilotkit-controlled-original.png
+Title: Controlled Generative UI example
+Author/project: CopilotKit. Copyright (c) Atai Barkai.
+Source revision: cddbf0cc085475ea4836a6241e51ba76799adc20
+Source: https://github.com/CopilotKit/CopilotKit/blob/cddbf0cc085475ea4836a6241e51ba76799adc20/examples/showcases/generative-ui/assets/static-generative-ui-example.png
+License: MIT; full notice in copilotkit-MIT.txt.
+SHA-256: a1774f0a02c7a0f4e8eb40b6cb9be5065d0e8b7a13d4f98fa30019bbe2b44b38
+Git LFS payload downloaded, not the pointer file.
+
+C2: ../images/copilotkit-declarative-original.png
+Title: Declarative Generative UI overview
+Author/project: CopilotKit. Copyright (c) Atai Barkai.
+Source revision: cddbf0cc085475ea4836a6241e51ba76799adc20
+Source: https://github.com/CopilotKit/CopilotKit/blob/cddbf0cc085475ea4836a6241e51ba76799adc20/examples/showcases/generative-ui/assets/declarative-generative-ui-overview.png
+License: MIT; full notice in copilotkit-MIT.txt.
+SHA-256: a1285492c95a79b754db617c57d6918d9857e983d38f4b787eae65fb3fd6bf2c
+Git LFS payload downloaded, not the pointer file.
+
+P1: ../images/ag-ui-overview-original.png
+Title: AG-UI Overview
+Author/project: AG-UI Protocol contributors. Copyright (c) 2025.
+Source revision: f08ccf853497914ef70a5f0197af45bb74915bc2
+Source: https://github.com/ag-ui-protocol/ag-ui/blob/f08ccf853497914ef70a5f0197af45bb74915bc2/docs/images/ag-ui-overview-with-partners.png
+Context: https://docs.ag-ui.com/introduction
+License: MIT; full notice in ag-ui-MIT.txt.
+
+G1: ../images/google-generative-ui-system-original.svg
+Title: High Level Method Overview / System Diagram
+Authors: Yaniv Leviathan, Dani Valevski, Matan Kalman, Danny Lumen,
+Eyal Segalis, Eyal Molad, Shlomi Pasternak, Vishnu Natchu, Valerie Nygaard,
+Srinivasan (Cheenu) Venkatachary, James Manyika, Yossi Matias; Google Research.
+Source: https://generativeui.github.io/static/images/sys_diagram_dotted.svg
+Context and license declaration: https://generativeui.github.io/
+License: Creative Commons Attribution-ShareAlike 4.0 International.
+License URL: https://creativecommons.org/licenses/by-sa/4.0/
+Full legal code: google-CC-BY-SA-4.0.txt
+SHA-256: ea495ecffb50c5cd26705d7b3eff1cd63671cd086c9573db2abae8f2b06402bd
+This is the website-published SVG, not a reproduction of the complete PDF.
+No changes made. The asset remains available under CC BY-SA 4.0.
+
+A1: ../images/a2ui-end-to-end-original.png
+Title: The End-to-End Data Flow
+Author/project: A2UI project contributors.
+Source revision: 2d2a714dafd22590e705c32a47cd5390ab96fdc5
+Source: https://github.com/a2ui-project/a2ui/blob/2d2a714dafd22590e705c32a47cd5390ab96fdc5/docs/public/assets/end-to-end-data-flow.png
+Context: https://a2ui.org/concepts/data-flow/
+License: Apache License 2.0; upstream license copy in a2ui-Apache-2.0.txt.
+SHA-256: a960d0dce8a0af633adec75941589967ab65432e82152afc9e76ad76c83c95e8
+Version note: Original graphic uses v0.8-era surfaceUpdate, dataModelUpdate,
+beginRendering and userAction names. See the adjacent document's v0.9.1
+mapping before using it as implementation guidance.
+
+Licensing boundaries
+-------------------
+CopilotKit marketing-site images are not presumed to inherit the software
+repository license. C1 and C2 are files in the licensed GitHub repository.
+The Google website's license is not presumed to license the entire paper.
+No PDF, unrelated generated demo artwork, or complete third-party article is
+redistributed here. Original analytical SVGs elsewhere in this topic are
+separately authored diagrams, not altered copies of these source figures.
