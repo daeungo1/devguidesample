@@ -9,7 +9,7 @@ tags: [design, evaluate, ai-agents]
 status: current
 verification_status: verified
 published_at: 2026-09-21
-sources_checked_at: 2026-09-21
+sources_checked_at: 2026-09-22
 official_sources:
   - title: "Generative UI: Understanding Agent-Powered Interfaces"
     url: https://www.copilotkit.ai/generative-ui
@@ -25,11 +25,14 @@ official_sources:
     url: https://modelcontextprotocol.io/extensions/apps/overview
   - title: AG-UI Integration with Agent Framework
     url: https://learn.microsoft.com/agent-framework/integrations/by-component/ui/ag-ui/
+  - title: AG-UI Interactive Dojo
+    url: https://dojo.ag-ui.com/
 ---
 
 # Controlled·Declarative·Open-ended Generative UI 패턴
 
-**기준일: 2026-09-21.** [CopilotKit의 Generative UI 분류][taxonomy]는
+**기준일: 2026-09-21. Screenshot 확인일: 2026-09-22.**
+[CopilotKit의 Generative UI 분류][taxonomy]는
 에이전트 기반 인터페이스의 표현 방식을 이해하기 위한 틀이다. 세 패턴은
 서로 배타적인 제품 목록도, Controlled에서 Open-ended로 이동해야 한다는
 성숙도 단계도 아니다.
@@ -68,7 +71,7 @@ MCP Apps를 세 패턴 옆의 **special case**로 분리한다.
 
 ![CopilotKit 공식 Controlled Generative UI 예시. 개발자가 정의한 날씨 UI를 도구 호출에 연결하는 구조](../images/copilotkit-controlled-original.png)
 
-*원천 도식 C1. CopilotKit, 공식 Generative UI showcase의
+*Screenshot C1. CopilotKit, 공식 Generative UI showcase의
 [Controlled 예시][showcase]. [MIT](../licenses/copilotkit-MIT.txt), 변경 없이 수록.
 그림·샘플의 API 이름은 해당 revision의 예시이며 최신 SDK 전체에 대한 API 보증이 아니다.*
 
@@ -76,6 +79,23 @@ MCP Apps를 세 패턴 옆의 **special case**로 분리한다.
 
 개발자가 제품 카드, 비교표, 예약 폼을 미리 구현한다. 에이전트의 도구 호출이나
 애플리케이션 상태에 맞춰 컴포넌트를 선택하고 구조화된 값을 전달한다.
+
+![AG-UI Dojo의 Backend Tool Rendering 데모 실행 화면. 왼쪽에 LangGraph(Python) 통합과 데모 목록이 있고, 오른쪽 대화 영역에는 도구 결과로 채워진 뉴욕 날씨 카드와 온도·습도·풍속 값, 그 아래 같은 내용을 설명하는 문장과 후속 질문 버튼이 표시된다](../images/ag-ui-dojo-backend-tool-rendering-screenshot.png)
+
+*Screenshot S2. [AG-UI Dojo][dojo]의 Backend Tool Rendering 데모를 조사일에 실행한
+화면. 저작권은 각 프로젝트에 있으며 설명을 위한 인용이다. 브라우저 표시 영역은
+제외했다.*
+
+이 화면은 Controlled를 이해하는 데 유용하다. 날씨 카드의 레이아웃, 아이콘, 지표
+배치는 모두 미리 구현된 컴포넌트다. 에이전트는 도구를 호출하고 도시와 측정값을
+전달할 뿐이며, 카드 아래 텍스트 답변과 후속 질문 버튼도 개발자가 정의한
+표현이다. 같은 Dojo에서 Human in the loop, Agentic Generative UI 같은 시나리오를
+별도 데모로 제공한다는 점도 함께 읽어야 한다. **생성 UI 도입은 하나의 화면 생성
+API를 붙이는 일이 아니라 시나리오별로 다른 계약을 설계하는 일**이다.
+
+Dojo는 공개 데모이므로 도입 검토 시 기준선 비교의 출발점으로 쓸 수 있다.
+다만 데모의 동작이 선택한 런타임·모델·renderer 조합에서 그대로 재현된다는
+보증은 아니다.
 
 장점은 기존 디자인 시스템, 접근성 검사, 오류·로딩 상태를 재사용할 수
 있다는 점이다. 반면 요청에 맞는 컴포넌트가 없으면 새로운 UI를 구현해야 한다.
@@ -97,7 +117,7 @@ MCP Apps를 세 패턴 옆의 **special case**로 분리한다.
 
 ![CopilotKit 공식 Declarative Generative UI 개요. 에이전트의 구조화된 UI 표현을 클라이언트가 렌더링하는 접근](../images/copilotkit-declarative-original.png)
 
-*원천 도식 C2. CopilotKit, 공식 Generative UI showcase의
+*Screenshot C2. CopilotKit, 공식 Generative UI showcase의
 [Declarative 개요][showcase]. [MIT](../licenses/copilotkit-MIT.txt), 변경 없이 수록.
 그림 속 spec·payload는 패턴 이해용이며 A2UI v0.9.1의 wire schema로 사용하지 않는다.*
 
@@ -226,13 +246,14 @@ Controlled, 기능 설명은 격리된 Open-ended로 나누는 혼합 설계도 
 - [CopilotKit Generative UI][taxonomy]: 패턴 분류와 개발자·모델 통제 축.
 - [CopilotKit 저장소][copilotkit]: 구현·예제의 공식 진입점.
 - [표시 전용 컴포넌트][display-only]: 현재 문서의 `useComponent` 사용 범위.
-- [CopilotKit Generative UI showcase][showcase]: 수록한 두 원천 도식의 출처.
+- [CopilotKit Generative UI showcase][showcase]: 수록한 두 Screenshot의 출처.
   showcase가 MCP Apps를 Open-ended에 연결하는 설명은 최신 소개 페이지의
   “special case” 분류와 구분해 읽는다.
 - [A2UI][a2ui]: 선언적 UI와 native renderer 개념.
 - [MCP Apps][mcp-apps]: UI 리소스 전달과 호스트 렌더링.
 - [Microsoft Agent Framework AG-UI][learn-agui]: 도구 렌더링·공유 상태를
   분리한 실제 에이전트 프레임워크 통합 사례.
+- [AG-UI Dojo][dojo]: 시나리오별 공개 데모와 수록한 실행 화면의 출처.
 
 [taxonomy]: https://www.copilotkit.ai/generative-ui
 [copilotkit]: https://github.com/CopilotKit/CopilotKit
@@ -241,3 +262,4 @@ Controlled, 기능 설명은 격리된 Open-ended로 나누는 혼합 설계도 
 [learn-agui]: https://learn.microsoft.com/agent-framework/integrations/by-component/ui/ag-ui/
 [showcase]: https://github.com/CopilotKit/CopilotKit/blob/cddbf0cc085475ea4836a6241e51ba76799adc20/examples/showcases/generative-ui/README.md
 [display-only]: https://docs.copilotkit.ai/generative-ui/your-components/display-only
+[dojo]: https://dojo.ag-ui.com/

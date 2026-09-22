@@ -9,7 +9,7 @@ tags: [design, evaluate, ai-agents]
 status: current
 verification_status: verified
 published_at: 2026-09-21
-sources_checked_at: 2026-09-21
+sources_checked_at: 2026-09-22
 official_sources:
   - title: AG-UI Overview
     url: https://docs.ag-ui.com/introduction
@@ -25,14 +25,24 @@ official_sources:
     url: https://learn.microsoft.com/agent-framework/integrations/by-component/ui/ag-ui/
   - title: MCP Apps Compatibility with AG-UI
     url: https://learn.microsoft.com/agent-framework/integrations/by-component/ui/ag-ui/mcp-apps
+  - title: CopilotKit Products & Features
+    url: https://www.copilotkit.ai/product
+  - title: "A2UI - Google's Generative UI Spec"
+    url: https://docs.copilotkit.ai/generative-ui/a2ui
+  - title: A2UI - A Protocol for Agent-Driven Interfaces
+    url: https://a2ui.org/
+  - title: AG-UI Generative UI Specs
+    url: https://docs.ag-ui.com/concepts/generative-ui-specs
+  - title: AG-UI and A2UI
+    url: https://www.copilotkit.ai/ag-ui-and-a2ui
 ---
 
 # CopilotKit·AG-UI·MCP Apps의 책임과 호출 경로
 
-**기준일: 2026-09-21.** CopilotKit는 구현 도구이며, AG-UI와 MCP는 서로
-다른 상호작용 계약이다. MCP Apps는 MCP 도구에 연결된 UI와 호스트의
-상호작용을 다룬다. 이 구분이 있어야 UI 전환 비용과 모델 호출 비용을
-독립적으로 설계할 수 있다.
+**기준일: 2026-09-21. Screenshot 확인일: 2026-09-22.** CopilotKit는 구현
+도구이며, AG-UI와 MCP는 서로 다른 상호작용 계약이다. MCP Apps는 MCP 도구에
+연결된 UI와 호스트의 상호작용을 다룬다. 이 구분이 있어야 UI 전환 비용과
+모델 호출 비용을 독립적으로 설계할 수 있다.
 
 ## 질문
 
@@ -44,7 +54,7 @@ official_sources:
 
 ![AG-UI 공식 개요. 사용자 대면 애플리케이션과 에이전트 프레임워크 사이의 이벤트 기반 연결을 보여 주는 생태계 도식](../images/ag-ui-overview-original.png){ style="background-color: white;" }
 
-*원천 도식 P1. AG-UI 프로젝트, [공식 Overview][agui-overview].
+*Screenshot P1. AG-UI 프로젝트, [공식 Overview][agui-overview].
 [MIT](../licenses/ag-ui-MIT.txt), 변경 없이 수록.
 도식의 프로젝트·로고는 원문에 나타난 생태계 관계이며, 모든 조합의 호환성이나
 개별 기능 지원을 검증한 인증표가 아니다.*
@@ -54,6 +64,22 @@ official_sources:
 [CopilotKit][copilotkit]는 에이전트와 연결되는 프런트엔드·런타임을 구성하기
 위한 스택이다. [공식 AG-UI 설명][agui]에 따르면 AG-UI를 통해 지원하는
 에이전트 프레임워크와 앱 사이의 연결을 추상화한다.
+
+![CopilotKit 제품 소개 화면. "Any frontend. Any agent." 제목 아래 Web(React·Vue·Angular·Svelte), Mobile(iOS·Android·React Native·Flutter), Team chat(Slack·MS Teams·Google Chat·Discord), Messaging(WhatsApp·Telegram·iMessage·SMS) 그룹이 중앙의 CopilotKit + AG-UI 블록으로 모이고, 아래에는 Microsoft MAF·LangChain·Google ADK·OpenAI Agent SDK·LlamaIndex·Claude Agent SDK·AWS Strands·mastra·AG2 백엔드가 연결된 도식](../images/copilotkit-product-overview-screenshot.png)
+
+*Screenshot S3. CopilotKit, [제품 소개 페이지][copilotkit-product]의 조사일 화면.
+저작권은 CopilotKit에 있으며 벤더의 주장을 설명하기 위한 인용이다.*
+
+이 화면은 CopilotKit의 포지셔닝을 한 번에 보여 준다. 위쪽은 **사용자 표면**의
+다양성, 아래쪽은 **에이전트 백엔드**의 교체 가능성이며 그 사이를 AG-UI가 잇는
+구조다. 다만 다음 두 가지를 분리해 읽어야 한다.
+
+- 표면과 백엔드 목록은 생태계의 연결 대상이지 **조합별 기능 동등성의 인증표가
+  아니다.** 승인·상태 동기화·생성 UI 지원 범위는 SDK와 버전마다 다르다.
+- 로고가 있다는 사실이 해당 제품의 보증이나 상호 추천을 뜻하지 않는다.
+
+즉 이 도식은 “무엇을 연결할 수 있는가”의 지도이며, “무엇이 같은 방식으로
+동작하는가”는 선택한 조합의 공식 문서와 실제 trace로 확인해야 한다.
 
 AG-UI가 다루는 것은 단순한 답변 텍스트가 아니다.
 
@@ -93,6 +119,51 @@ AG-UI 이벤트로 바꾸는 어댑터와 클라이언트의 렌더링을 분리
 - A2UI의 특정 버전과 모든 카탈로그를 렌더링할 수 있다.
 - MCP Apps의 iframe·리소스·도구 요청을 호스트가 처리한다.
 - 모든 backend에서 승인·상태·취소가 동일하게 동작한다.
+
+## AG-UI는 생성 UI 명세가 아니다
+
+[AG-UI 공식 문서의 Generative UI 설명][agui-genui]은 이 구분을 명시한다.
+“**AG-UI는 생성 UI 명세가 아니라** 에이전트와 애플리케이션 사이의 양방향
+런타임 연결을 제공하는 User Interaction 프로토콜”이라는 것이다. 같은 문서가
+생성 UI 명세를 따로 분류한다. CopilotKit도 [AG-UI와 A2UI의 관계][ck-a2ui-page]를
+별도 페이지로 설명한다.
+
+| 공식 문서의 분류 | 문서가 밝힌 출처·목적 | 이 리서치에서 주의할 점 |
+|---|---|---|
+| AG-UI | 프런트엔드와 임의의 에이전트 백엔드를 잇는 범용 양방향 연결 | 이벤트·상태 계약이며 컴포넌트 카탈로그를 정의하지 않음 |
+| A2UI | Google 출처의 선언적·스트리밍 생성 UI 명세 | 조사일 기준 v0.9.1 Current, v1.0 Candidate |
+| Open-JSON-UI | OpenAI 내부 선언적 생성 UI 스키마의 공개 표준화 | 이 리서치에서 1차 명세를 확인하지 않음 |
+| MCP-UI | MCP를 확장한 iframe 기반 생성 UI 표준 | MCP Apps와 **이름이 다르므로** 관계를 확인하고 인용 |
+
+표의 명칭·소속 표기는 해당 문서의 설명이다. 특히 이름 문제는 실무에서
+혼동을 부르기 쉬우므로 두 가지를 구분한다.
+
+- [MCP Apps][mcp-apps]는 `modelcontextprotocol.io`가 게시한 **공식 확장**이며
+  도구에 연결된 UI 리소스와 호스트 상호작용을 정의한다.
+- `MCP-UI`는 별개의 이름이지만 무관하지 않다. MCP Apps 공식 문서는 클라이언트를
+  만들 때 `@mcp-ui/client` 패키지를 쓰거나 SDK의 App Bridge 모듈로 직접
+  구현하는 두 가지 경로를 안내한다.
+
+즉 “MCP 계열 생성 UI”를 말할 때는 **명세(MCP Apps)**와 **구현 라이브러리
+(MCP-UI 등)**를 나눠서 적어야 지원 범위를 오해하지 않는다.
+
+같은 문서는 AG-UI가 위 생성 UI 명세들을 지원하며 개발자가 자체 생성 UI 표준을
+정의할 수도 있다고 설명한다. 이는 AG-UI가 표현 계약을 **고정하지 않는다**는
+뜻이지, 어떤 조합이든 렌더링이 보장된다는 뜻이 아니다.
+
+### 벤더 자료는 시점을 함께 확인한다
+
+CopilotKit이 배포한 설명 자료 『AG-UI and A2UI Explained』는 A2UI를 “곧
+공개될(soon to be released)” 명세로 소개하며 출시에 맞춰 지원할 예정이라고
+밝힌다. 조사일의 공개 문서는 다른 단계를 보여 준다.
+
+- [A2UI 공식 홈][a2ui]은 v0.9.1을 Current, v1.0을 Candidate로 표시한다.
+- [CopilotKit A2UI 문서][ck-a2ui]는 런타임에 `a2ui` 옵션을 켜면 에이전트의
+  A2UI 출력이 렌더링된다고 설명한다.
+
+따라서 배포본 자료는 작성 시점의 로드맵으로 읽고, 현재 지원 범위는 명세·제품
+문서에서 다시 확인해야 한다. 이 차이를 구분하지 않으면 “아직 없는 기능”과
+“이미 있는 기능”을 같은 근거로 인용하게 된다.
 
 ## MCP와 MCP Apps
 
@@ -223,6 +294,12 @@ UI 표현 자체의 계약은 [A2UI 분석](../google-a2ui/index.md), 도입 순
 - [Microsoft Agent Framework AG-UI][learn-agui]: 런타임 어댑터와 언어별 지원 범위.
 - [MCP Apps Compatibility with AG-UI][learn-mcp]: Python endpoint와
   TypeScript 미들웨어의 구체적인 책임 경계.
+- [CopilotKit 제품 소개][copilotkit-product]: 수록한 제품 화면의 출처와
+  표면·백엔드 연결 주장.
+- [CopilotKit A2UI 문서][ck-a2ui]: 런타임의 A2UI 렌더링 지원 범위.
+- [A2UI 공식 홈][a2ui]: 조사일의 명세 버전 상태.
+- [AG-UI Generative UI Specs][agui-genui]: 생성 UI 명세 분류와 AG-UI의 위치.
+- [AG-UI and A2UI][ck-a2ui-page]: 두 이름의 역할 차이에 대한 CopilotKit 설명.
 
 [copilotkit]: https://github.com/CopilotKit/CopilotKit
 [agui]: https://docs.copilotkit.ai/agentic-protocols/ag-ui
@@ -231,3 +308,8 @@ UI 표현 자체의 계약은 [A2UI 분석](../google-a2ui/index.md), 도입 순
 [learn-mcp]: https://learn.microsoft.com/agent-framework/integrations/by-component/ui/ag-ui/mcp-apps
 [agui-overview]: https://docs.ag-ui.com/introduction
 [agui-events]: https://docs.ag-ui.com/concepts/events
+[copilotkit-product]: https://www.copilotkit.ai/product
+[ck-a2ui]: https://docs.copilotkit.ai/generative-ui/a2ui
+[a2ui]: https://a2ui.org/
+[agui-genui]: https://docs.ag-ui.com/concepts/generative-ui-specs
+[ck-a2ui-page]: https://www.copilotkit.ai/ag-ui-and-a2ui

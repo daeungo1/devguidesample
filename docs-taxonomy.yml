@@ -124,8 +124,10 @@ official_source_hosts:
   - www.copilotkit.ai
   - docs.copilotkit.ai
   - docs.ag-ui.com
+  - dojo.ag-ui.com
   - a2ui.org
   - generativeui.github.io
+  - blog.google
   - openjdk.org
   - kubernetes.io
   - www.cncf.io

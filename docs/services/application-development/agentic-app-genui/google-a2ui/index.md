@@ -9,7 +9,7 @@ tags: [design, evaluate, ai-agents]
 status: current
 verification_status: verified
 published_at: 2026-09-21
-sources_checked_at: 2026-09-21
+sources_checked_at: 2026-09-22
 official_sources:
   - title: "Generative UI: LLMs are Effective UI Generators - linked PDF"
     url: https://generativeui.github.io/static/pdfs/paper.pdf
@@ -29,11 +29,14 @@ official_sources:
     url: https://a2ui.org/reference/renderers/
   - title: AG-UI Integration with Agent Framework
     url: https://learn.microsoft.com/agent-framework/integrations/by-component/ui/ag-ui/
+  - title: Gemini 3 in the Gemini app
+    url: https://blog.google/products/gemini/gemini-3-gemini-app/
 ---
 
 # Google Generative UI 연구와 A2UI의 설계 시사점
 
-**기준일: 2026-09-21.** Google의 Generative UI 연구는 “모델이 인터페이스까지
+**기준일: 2026-09-21. Screenshot 확인일: 2026-09-22.** Google의 Generative UI
+연구는 “모델이 인터페이스까지
 생성하면 사용자 경험이 개선되는가”를 탐구한다. A2UI는 “에이전트가 만든 UI
 표현을 클라이언트가 어떤 계약으로 렌더링하는가”를 다룬다.
 **생성 능력의 연구와 UI 표현 프로토콜은 서로 다른 근거이며, 결합은 별도의
@@ -58,7 +61,7 @@ PDF와 프로젝트 페이지의 수치가 일부 다르므로 두 자료를 하
 
 ![Google Generative UI 공식 연구 사이트의 시스템 도식. 시스템 지시와 사용자 요청을 받은 모델이 도구를 활용하고 후처리를 거쳐 웹 페이지를 생성하는 구성](../images/google-generative-ui-system-original.svg){ style="background-color: white;" }
 
-*원천 도식 G1. Yaniv Leviathan 외, Google Research,
+*Screenshot G1. Yaniv Leviathan 외, Google Research,
 [공식 연구 사이트의 High Level Method Overview][project]에 게시된 원본 SVG.
 [CC BY-SA 4.0](../licenses/google-CC-BY-SA-4.0.txt), 변경 없이 수록.
 논문의 Figure 2와 대응하는 시스템 개요이며 A2UI 아키텍처 도식은 아니다.*
@@ -134,7 +137,26 @@ No Philosophy 1450.77이다. 별도 비교군으로 계산한 ELO이므로 위 �
 
 두 출처에 서로 다른 값이 실제로 존재한다. 변경 이력과 평가 조건을 확인하지
 않고 한쪽 수치를 다른 쪽 표의 결과로 인용하지 않는다. 이 문서에서는 PDF를
-정량 근거로 유지하고, 프로젝트 사이트는 원천 도식·데모·별도 요약의 출처로 사용한다.
+정량 근거로 유지하고, 프로젝트 사이트는 Screenshot·데모·별도 요약의 출처로 사용한다.
+
+## 연구에서 제품으로: generative interfaces
+
+[Gemini 3 앱 소개][gemini-app]는 이 방향을 **generative interfaces**라는
+이름으로 제품에 도입했다고 밝히고, 첫 두 실험으로 visual layout과 dynamic
+view를 설명한다. dynamic view 예시 화면은 [리서치 요약](../index.md)에
+GIF로 수록했다.
+
+제품화 사실에서 다음을 구분한다.
+
+| 확인한 사실 | 확대 해석하지 않을 것 |
+|---|---|
+| Gemini 앱이 모델 생성 인터페이스를 실험으로 제공한다 | 모든 사용자·지역·요금제에서 동일하게 제공된다는 뜻은 아니다 |
+| 소개 화면이 탐색형 UI의 가능성을 보여 준다 | 소개 영상에 “시퀀스 단축·화면 시뮬레이션” 고지가 있다 |
+| Google이 연구와 제품을 연결했다 | 이 제품 기능이 **A2UI로 구현되었다는 공개 근거는 확인하지 않았다** |
+
+마지막 항목이 특히 중요하다. 연구의 자유 웹 페이지 생성, 제품의 generative
+interfaces, 그리고 A2UI의 선언적 카탈로그 렌더링은 같은 목표를 공유하지만
+서로 다른 구현 경로다. 하나의 성과를 다른 쪽의 근거로 사용하지 않는다.
 
 ## A2UI: 생성 결과를 제품 UI 계약으로 제한
 
@@ -172,23 +194,23 @@ v1.0은 진행 중인 후보 명세다. 홈페이지의 짧은 변경 요약과 
 설명이 일치한다고 전제하지 않는다. 구현은 특정 revision의 schema와 renderer를
 함께 고정하고, v0.9.1 예제에 candidate의 필드를 섞지 않는 것이 적절하다.
 
-## 원천 도식으로 보는 E2E
+## Screenshot으로 보는 E2E
 
-![A2UI 공식 원천 도식. 서버 JSONL 스트림, 클라이언트 버퍼링과 렌더링, 사용자 액션, 동적 갱신을 설명하며 v0.8 계열 메시지명을 사용한다](../images/a2ui-end-to-end-original.png)
+![A2UI 공식 Screenshot. 서버 JSONL 스트림, 클라이언트 버퍼링과 렌더링, 사용자 액션, 동적 갱신을 설명하며 v0.8 계열 메시지명을 사용한다](../images/a2ui-end-to-end-original.png)
 
-*원천 도식 A1. A2UI 프로젝트, [공식 Data Flow 문서][data-flow].
+*Screenshot A1. A2UI 프로젝트, [공식 Data Flow 문서][data-flow].
 [Apache-2.0](../licenses/a2ui-Apache-2.0.txt), 변경 없이 수록.
 원본 revision과 재배포 정보는 [이미지 출처 기록](../licenses/third-party-images.txt)에 보존한다.*
 
 [로컬 원본 확대](../images/a2ui-end-to-end-original.png)
 
 > [!IMPORTANT]
-> 이 원천 도식의 `surfaceUpdate`, `dataModelUpdate`, `beginRendering`,
+> 이 Screenshot의 `surfaceUpdate`, `dataModelUpdate`, `beginRendering`,
 > `userAction`은 **v0.8 계열**이다. 공식 사이트에 남아 있는 그림이라는 이유로
 > 최신 wire format으로 사용하면 안 된다. SSE와 별도 A2A 메시지는 그림의
 > 전달 방식이며, A2UI 자체가 이 조합만을 강제하는 것은 아니다.
 
-| 원천 도식의 표현 | v0.9.1에서 구분할 계약 |
+| Screenshot의 표현 | v0.9.1에서 구분할 계약 |
 |---|---|
 | `surfaceUpdate` | `updateComponents` |
 | `dataModelUpdate` | `updateDataModel` |
@@ -201,7 +223,7 @@ v1.0은 진행 중인 후보 명세다. 홈페이지의 짧은 변경 요약과 
 ![서버의 UI·데이터 기술과 클라이언트 카탈로그 렌더링, 사용자 액션과 업무 실행을 구분한 A2UI 책임 흐름도](../images/a2ui-end-to-end.svg)
 
 *그림 4. 현재 명세의 책임 경계를 설명하기 위해 직접 작성한 개념도.
-원천 도식 A1의 과거 메시지명을 그대로 사용하지 않는다.*
+Screenshot A1의 과거 메시지명을 그대로 사용하지 않는다.*
 
 1. 클라이언트와 서버가 지원하는 카탈로그와 버전을 전달 계층의 metadata
    또는 초기화 절차에서 교환한다.
@@ -291,6 +313,7 @@ CC BY-SA 4.0이 표시된 연구 사이트의 SVG이며, PDF 전체의 재배포
 - [Data Flow][data-flow]: 원천 E2E 도식과 v0.8·v0.9 예제의 구분.
 - [Renderer 지원표][renderers]: 플랫폼·버전별 공개 지원 상태.
 - [Microsoft Agent Framework AG-UI][learn-agui]: 이벤트 어댑터와 UI renderer 경계의 보조 사례.
+- [Gemini 3 앱 소개][gemini-app]: generative interfaces의 제품 도입과 두 실험.
 
 [paper]: https://generativeui.github.io/static/pdfs/paper.pdf
 [project]: https://generativeui.github.io/
@@ -301,3 +324,4 @@ CC BY-SA 4.0이 표시된 연구 사이트의 SVG이며, PDF 전체의 재배포
 [data-flow]: https://a2ui.org/concepts/data-flow/
 [renderers]: https://a2ui.org/reference/renderers/
 [learn-agui]: https://learn.microsoft.com/agent-framework/integrations/by-component/ui/ag-ui/
+[gemini-app]: https://blog.google/products/gemini/gemini-3-gemini-app/
