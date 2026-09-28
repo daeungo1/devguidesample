@@ -36,6 +36,8 @@ export interface PricedProduct extends Omit<Product, "prices" | "availableIn"> {
   currency: Currency;
   priceLabel: string;
   inStock: boolean;
+  /** Product image served by this app; the model never supplies image URLs. */
+  image: string;
 }
 
 const CURRENCY: Record<Region, { currency: Currency; locale: string }> = {
@@ -192,6 +194,7 @@ function toPriced(product: Product, region: Region): PricedProduct {
     currency,
     priceLabel: new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: 0 }).format(price),
     inStock: availableIn.includes(region),
+    image: `/products/${product.id}.webp`,
   };
 }
 

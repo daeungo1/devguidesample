@@ -6,6 +6,9 @@ GenUI 챗봇을 운영할 때의 과제인 **UI가 포함된 대화 기록 보�
 API 키 없이 Microsoft Entra ID로 호출합니다.
 
 브랜드(Contoso Electronics), 제품, 가격, 전력 사용량은 모두 가상의 예시 데이터입니다.
+제품 이미지는 실제 제품 사진이 아니라 Microsoft Foundry의 `gpt-image-2`로 **로고·문자·상표 없이 생성한
+가상 제품 렌더링**이며 `web/public/products/`에 정적 자산으로 들어 있습니다. 이미지 경로는 카탈로그
+API가 제품 ID로 내려주므로, 모델이 이미지 URL을 만들지 않습니다.
 설계 배경은 주제 문서의 [프로덕션 아키텍처](../../production/index.md)를 참고하세요.
 
 ![왼쪽 위에 운영 권장 경로 카드 두 개, 가운데 운영 과제 패널, 아래에 접힌 연구 영역이 있는 데모 첫 화면](assets/demo-overview.png)
@@ -67,7 +70,7 @@ UI 계약 버전(`show_phone_comparison@1`, `contoso-home-bundle@1`)이 표시�
 
 모든 단계에서 가격·재고·전력 수치는 모델 출력이 아니라 앱이 소유한 데이터에서 옵니다.
 
-- Controlled: `PhoneComparison`은 제품 ID만 받고 `/api/catalog`에서 가격을 조회합니다.
+- Controlled: `PhoneComparison`은 제품 ID만 받고 `/api/catalog`에서 가격·재고·이미지를 조회합니다.
 - Declarative: 카탈로그 정의에 가격·통화·재고 속성이 **아예 없습니다**
   (`web/src/a2ui/definitions.test.ts`가 이를 계약으로 검증).
 - MCP Apps: 계산은 MCP 서버의 `simulate_savings`가 담당합니다.
@@ -205,7 +208,7 @@ Bicep은 GPT-5.6 Luna·Terra를 GlobalStandard, 각 50K TPM으로 배포합니�
 
 ```powershell
 cd mcp; npm test; npm run typecheck     # 13 tests
-cd ../web; npm test; npm run typecheck  # 21 tests
+cd ../web; npm test; npm run typecheck  # 22 tests
 ```
 
 2026-09-28 koreacentral 배포에서 headless Microsoft Edge(1440×900)로 네 단계를 연속 실행한 결과입니다.

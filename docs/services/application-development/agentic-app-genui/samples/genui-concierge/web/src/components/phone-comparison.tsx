@@ -33,6 +33,10 @@ export function PhoneComparison({ productIds, focus, recommendedId }: Partial<Ph
         <div className="gu-compare" style={{ gridTemplateColumns: `repeat(${catalog.products.length}, minmax(0, 1fr))` }}>
           {catalog.products.map((phone) => (
             <article key={phone.id} className={`gu-phone${phone.id === recommendedId ? " is-recommended" : ""}`}>
+              <div className="gu-media">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={phone.image} alt={`${phone.name} 제품 이미지`} loading="lazy" width={320} height={320} />
+              </div>
               {phone.id === recommendedId && <span className="gu-pill">추천</span>}
               <h4>{phone.name}</h4>
               <p className="gu-muted">{phone.tagline}</p>

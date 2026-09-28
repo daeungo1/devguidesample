@@ -141,7 +141,13 @@ button:focus-visible, select:focus-visible { outline: 2px solid var(--cx-brand);
 .gu-bundle-head { display: grid; gap: 4px; margin-bottom: 4px; }
 .gu-bundle-head h3 { margin: 0; font-size: 16px; }
 .gu-bundle-head p { margin: 0; font-size: 13px; }
-.gu-tile { border: 1px solid var(--cx-line); border-radius: 10px; padding: 12px; display: grid; gap: 4px; background: var(--cx-surface); }
+.gu-tile { border: 1px solid var(--cx-line); border-radius: 10px; padding: 10px; display: grid; grid-template-columns: 96px 1fr; gap: 12px; align-items: center; background: var(--cx-surface); }
+.gu-tile.is-loading, .gu-tile.gu-error { display: block; }
+.gu-tile-media { width: 96px; height: 96px; border-radius: 8px; overflow: hidden; background: #eef0f3; }
+.gu-tile-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gu-tile-body { display: grid; gap: 4px; min-width: 0; }
+.gu-media { aspect-ratio: 1 / 1; border-radius: 8px; overflow: hidden; background: #eef0f3; margin-bottom: 6px; }
+.gu-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .gu-tile.is-loading { color: var(--cx-muted); font-size: 12px; }
 .gu-tile h4 { margin: 0; font-size: 14px; }
 .gu-tile p { margin: 0; font-size: 12px; }

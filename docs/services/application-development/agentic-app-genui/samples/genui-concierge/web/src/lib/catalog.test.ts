@@ -47,6 +47,12 @@ describe("listProducts", () => {
       expect(listProducts({ region: "KR", category }).length).toBeGreaterThan(0);
     }
   });
+
+  it("serves an app-owned product image for every product", () => {
+    for (const product of listProducts({ region: "US" })) {
+      expect(product.image).toBe(`/products/${product.id}.webp`);
+    }
+  });
 });
 
 describe("isRegion", () => {

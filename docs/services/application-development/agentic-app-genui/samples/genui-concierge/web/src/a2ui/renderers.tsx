@@ -16,13 +16,19 @@ function ProductTile({ productId, reason }: { productId: string; reason?: unknow
   const [p] = state.products;
   return (
     <article className="gu-tile">
-      <span className="gu-tile-cat">{CATEGORY_LABELS[p.category]}</span>
-      <h4>{p.name}</h4>
-      <p className="gu-muted">{text(reason) || p.tagline}</p>
-      <div className="gu-tile-foot">
-        <strong>{p.priceLabel}</strong>
-        {p.energyGrade && <span className="gu-grade">에너지 {p.energyGrade}</span>}
-        {!p.inStock && <span className="gu-stock is-out">미출시</span>}
+      <div className="gu-tile-media">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={p.image} alt={`${p.name} 제품 이미지`} loading="lazy" width={160} height={160} />
+      </div>
+      <div className="gu-tile-body">
+        <span className="gu-tile-cat">{CATEGORY_LABELS[p.category]}</span>
+        <h4>{p.name}</h4>
+        <p className="gu-muted">{text(reason) || p.tagline}</p>
+        <div className="gu-tile-foot">
+          <strong>{p.priceLabel}</strong>
+          {p.energyGrade && <span className="gu-grade">에너지 {p.energyGrade}</span>}
+          {!p.inStock && <span className="gu-stock is-out">미출시</span>}
+        </div>
       </div>
     </article>
   );
