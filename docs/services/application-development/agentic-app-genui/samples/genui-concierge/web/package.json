@@ -4,7 +4,7 @@
   "private": true,
   "description": "Contoso device concierge: CopilotKit generative UI demo on Azure OpenAI GPT-5.6.",
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "scripts": {
     "dev": "next dev -p 3000",
@@ -25,7 +25,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@types/node": "^22.10.0",
+    "@types/node": "^24.13.6",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "typescript": "^5.9.3",

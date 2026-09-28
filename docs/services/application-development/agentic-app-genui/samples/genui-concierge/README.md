@@ -96,6 +96,25 @@ Managed identity ─► Foundry: Cognitive Services User · ACR: AcrPull
 | `infra/` | Bicep: Foundry(모델 2개), Container Apps, ACR, 관리 ID, Log Analytics |
 | `azure.yaml` | azd 서비스 정의 |
 
+## 참고한 CopilotKit 자료와의 차이
+
+세 패턴의 분류와 데모 화면 구성은 CopilotKit의 [Generative UI showcase][ck-showcase]를 따랐습니다.
+이 showcase는 실행 코드 없이 README·이미지·가이드 PDF로 된 개념 자료이므로, 구현은 CopilotKit 1.73의
+[Generative UI 문서][ck-genui]와 [MCP Apps showcase 코드][ck-mcp-showcase]를 기준으로 했습니다.
+
+| 패턴 | showcase README의 방식 | 이 데모의 방식 | 이유 |
+|---|---|---|---|
+| Controlled | `useFrontendTool` + 실행 단계별 `render` | `useComponent`(Components as Tools) + `followUp: false` | 최신 문서의 표시 전용 권장 API, 카드 중복 렌더링 방지 |
+| Declarative | ADK(Python) 에이전트 + A2UI **v0.8** 메시지(`surfaceUpdate` 등) + `createA2UIMessageRenderer` | `BuiltInAgent` + A2UI 카탈로그(`createCatalog`, `a2ui={{ catalog }}`) | v0.8은 Legacy, 현재는 v0.9.1. 블록을 Controlled 컴포넌트로 구현 |
+| Open-ended | `.use(new MCPAppsMiddleware(...))` | 런타임 `mcpApps` 옵션(같은 미들웨어를 자동 적용) + `openGenerativeUI` | 1.73 런타임 내장 옵션, Fully Open 단계 추가 |
+| 모델 | OpenAI 등 공개 모델 | Azure OpenAI GPT-5.6 Luna·Terra, Responses API, Entra ID | Azure 키 없는 운영 구성 |
+
+showcase가 함께 소개하는 Open-JSON-UI는 이 데모에 넣지 않았습니다.
+
+[ck-showcase]: https://github.com/CopilotKit/CopilotKit/tree/main/examples/showcases/generative-ui
+[ck-genui]: https://docs.copilotkit.ai/concepts/generative-ui-overview
+[ck-mcp-showcase]: https://github.com/CopilotKit/CopilotKit/tree/main/examples/showcases/mcp-apps
+
 ## 설계 결정
 
 - **GPT-5.6은 Responses API로 호출합니다.** Microsoft Learn의
@@ -154,7 +173,7 @@ ID 공급자 연동으로 대체해야 합니다.
 
 ## 로컬 실행
 
-필요 조건: Node.js 20.19 이상 권장, Azure CLI 로그인, 아래 배포로 만든 Foundry 리소스
+필요 조건: **Node.js 24 LTS**(2028-04-30까지 지원, Node 20은 2026-04-30 EOL), Azure CLI 로그인, 아래 배포로 만든 Foundry 리소스
 (배포자에게 Cognitive Services User가 부여됩니다).
 
 ```powershell
@@ -210,6 +229,9 @@ Bicep은 GPT-5.6 Luna·Terra를 GlobalStandard, 각 50K TPM으로 배포합니�
 cd mcp; npm test; npm run typecheck     # 13 tests
 cd ../web; npm test; npm run typecheck  # 22 tests
 ```
+
+두 Dockerfile은 Node.js 24 이미지의 빌드 단계에서 같은 테스트를 먼저 실행하므로, 테스트가 실패하면
+컨테이너 이미지가 만들어지지 않습니다.
 
 2026-09-28 koreacentral 배포에서 headless Microsoft Edge(1440×900)로 네 단계를 연속 실행한 결과입니다.
 각 모델 한 번씩의 수동 실행 기록이며 성능 벤치마크가 아닙니다. 시간은 추천 프롬프트 클릭부터

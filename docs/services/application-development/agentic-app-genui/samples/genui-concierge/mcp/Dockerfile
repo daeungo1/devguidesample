@@ -1,14 +1,16 @@
 # syntax=docker/dockerfile:1
-FROM node:22-alpine AS build
+# Node.js 24 LTS (supported until 2028-04-30).
+FROM node:24-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
-COPY tsconfig.json tsconfig.app.json vite.config.ts ./
+COPY tsconfig.json tsconfig.app.json vite.config.ts vitest.config.ts ./
 COPY src ./src
 COPY app ./app
-RUN npm run build && npm prune --omit=dev
+# Tests and type checks run on the same Node.js version as production.
+RUN npm test && npm run typecheck && npm run build && npm prune --omit=dev
 
-FROM node:22-alpine
+FROM node:24-alpine
 WORKDIR /app
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
