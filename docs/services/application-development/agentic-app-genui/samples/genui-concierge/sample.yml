@@ -1,0 +1,6 @@
+title: Contoso device concierge GenUI demo
+description: CopilotKit demo that renders Controlled, Declarative (A2UI) and Open-ended (MCP Apps) generative UI with GPT-5.6 on Azure.
+kind: runnable
+used_by:
+  - index
+  - patterns

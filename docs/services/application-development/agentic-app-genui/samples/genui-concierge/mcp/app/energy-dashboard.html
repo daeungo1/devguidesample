@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contoso Energy</title>
+    <link rel="stylesheet" href="./energy-dashboard.css" />
+  </head>
+  <body>
+    <main class="shell" data-mode="inline">
+      <header class="head">
+        <div>
+          <p class="eyebrow">Contoso Energy · 파트너 서비스 앱</p>
+          <h1>우리 집 가전 에너지</h1>
+        </div>
+        <div class="head-actions">
+          <span class="chip" id="region-chip">—</span>
+          <button type="button" class="ghost" id="mode-btn" hidden>전체 화면</button>
+        </div>
+      </header>
+
+      <section class="kpis" aria-live="polite">
+        <div class="kpi">
+          <span class="kpi-label">월 사용량</span>
+          <strong class="kpi-value" id="kpi-after">—</strong>
+          <span class="kpi-sub" id="kpi-before">—</span>
+        </div>
+        <div class="kpi accent">
+          <span class="kpi-label">월 절감액</span>
+          <strong class="kpi-value" id="kpi-saved">—</strong>
+          <span class="kpi-sub" id="kpi-saved-kwh">—</span>
+        </div>
+      </section>
+
+      <section class="control">
+        <label for="eco">AI 절전 강도 <output id="eco-value">0</output></label>
+        <input id="eco" type="range" min="0" max="100" step="10" value="0" disabled />
+      </section>
+
+      <ul class="bars" id="bars"></ul>
+
+      <table class="detail" id="detail">
+        <thead>
+          <tr><th scope="col">가전</th><th scope="col">현재</th><th scope="col">절전 후</th><th scope="col">절감</th></tr>
+        </thead>
+        <tbody id="detail-body"></tbody>
+      </table>
+
+      <footer class="foot">
+        <p class="trace" id="trace">대시보드 연결 중…</p>
+        <button type="button" class="ghost" id="share-btn" disabled>결과를 대화에 반영</button>
+      </footer>
+    </main>
+    <script type="module" src="./energy-dashboard.ts"></script>
+  </body>
+</html>
