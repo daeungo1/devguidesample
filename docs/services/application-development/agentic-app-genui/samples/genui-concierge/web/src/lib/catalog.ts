@@ -9,6 +9,15 @@ export type Currency = "KRW" | "USD" | "EUR";
 export const CATEGORIES = ["phone", "tv", "fridge", "washer", "dryer", "aircon"] as const;
 export type Category = (typeof CATEGORIES)[number];
 
+export const CATEGORY_LABELS: Record<Category, string> = {
+  phone: "스마트폰",
+  tv: "TV",
+  fridge: "냉장고",
+  washer: "세탁기",
+  dryer: "건조기",
+  aircon: "에어컨",
+};
+
 export interface Product {
   id: string;
   category: Category;
@@ -53,7 +62,7 @@ const PRODUCTS: Product[] = [
     category: "phone",
     name: "Contoso X Fold",
     tagline: "펼치면 태블릿, 접으면 스마트폰",
-    highlights: ["7.6형 폴더블 화면", "멀티 윈도 3분할", "S펜 호환"],
+    highlights: ["7.6형 폴더블 화면", "멀티 윈도 3분할", "스타일러스 펜 호환"],
     specs: { 디스플레이: "7.6형 폴더블 / 6.3형 커버", 배터리: "4,400mAh", 저장공간: "512GB", 무게: "239g" },
     prices: { KR: 2_398_000, US: 1_899, DE: 2_099 },
     availableIn: ALL,

@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 860" role="img" aria-labelledby="title desc">
+  <title id="title">Production reference architecture for Controlled and Declarative generative UI</title>
+  <desc id="desc">A browser or app renders only approved, versioned components. It talks to a backend-for-frontend over AG-UI events. The BFF authenticates the user, validates UI contracts, persists each turn to a conversation store and runs the agent. The agent calls the Foundry model through the Responses API and reaches domain services only through typed tools. Domain APIs never know about UI. Rollback and edit create a new branch in the conversation store instead of deleting history.</desc>
+  <defs>
+    <style>
+      text { font-family: "Segoe UI", Arial, sans-serif; fill: #172b4d; }
+      .heading { font-size: 28px; font-weight: 700; }
+      .label { font-size: 20px; font-weight: 700; }
+      .body { font-size: 16px; }
+      .small { font-size: 14px; fill: #42526e; }
+      .proto { font-size: 14px; font-weight: 600; fill: #0f5e59; }
+      .arrow { fill: none; stroke: #506784; stroke-width: 2.5; marker-end: url(#arrow); }
+      .dash { fill: none; stroke: #7c3aed; stroke-width: 2; stroke-dasharray: 6 5; marker-end: url(#arrowv); }
+    </style>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L9 5 L0 10" fill="#506784"/></marker>
+    <marker id="arrowv" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L9 5 L0 10" fill="#7c3aed"/></marker>
+  </defs>
+  <rect width="1200" height="860" rx="16" fill="#f5f7fb"/>
+  <text x="40" y="50" class="heading">GenUI in production: layout from the model, blocks and facts from the app</text>
+  <text x="40" y="82" class="body">Controlled + Declarative only. Open-ended UI stays in an isolated research environment.</text>
+
+  <!-- Client -->
+  <rect x="40" y="115" width="250" height="390" rx="12" fill="#e9efff" stroke="#3957a5"/>
+  <text x="60" y="150" class="label">Client (web / app)</text>
+  <text x="60" y="182" class="body">Design-system components</text>
+  <text x="60" y="204" class="small">Controlled: typed props</text>
+  <text x="60" y="238" class="body">Catalog renderer</text>
+  <text x="60" y="260" class="small">Declarative: approved blocks</text>
+  <text x="60" y="294" class="body">Contract registry</text>
+  <text x="60" y="316" class="small">bundle@1 · phone-card@1</text>
+  <text x="60" y="350" class="body">Thread UI</text>
+  <text x="60" y="372" class="small">history, rollback, edit and branch</text>
+  <rect x="60" y="400" width="210" height="84" rx="8" fill="#ffffff"/>
+  <text x="74" y="428" class="small">Renders data, not stored HTML.</text>
+  <text x="74" y="450" class="small">Unknown component or version</text>
+  <text x="74" y="472" class="small">→ safe fallback + error</text>
+
+  <!-- BFF -->
+  <rect x="360" y="115" width="300" height="390" rx="12" fill="#e5f2ee" stroke="#087f5b"/>
+  <text x="380" y="150" class="label">BFF (agent gateway)</text>
+  <text x="380" y="182" class="body">Session and identity</text>
+  <text x="380" y="204" class="small">user token, tenant, thread ownership</text>
+  <text x="380" y="238" class="body">UI contract gate</text>
+  <text x="380" y="260" class="small">schema + catalog version check</text>
+  <text x="380" y="294" class="body">Tool policy</text>
+  <text x="380" y="316" class="small">read tools vs action tools + approval</text>
+  <text x="380" y="350" class="body">Turn writer</text>
+  <text x="380" y="372" class="small">append-only, parentId branches</text>
+  <rect x="380" y="400" width="260" height="84" rx="8" fill="#ffffff"/>
+  <text x="394" y="428" class="small">Agent runtime (CopilotKit runtime</text>
+  <text x="394" y="450" class="small">or Microsoft Agent Framework)</text>
+  <text x="394" y="472" class="small">→ Foundry model, Responses API</text>
+
+  <!-- Domain -->
+  <rect x="730" y="115" width="430" height="220" rx="12" fill="#fff2df" stroke="#a96612"/>
+  <text x="750" y="150" class="label">Domain services (UI-agnostic)</text>
+  <rect x="750" y="170" width="190" height="70" rx="8" fill="#ffffff"/>
+  <text x="764" y="198" class="body">Catalog · pricing</text>
+  <text x="764" y="222" class="small">authoritative facts</text>
+  <rect x="950" y="170" width="190" height="70" rx="8" fill="#ffffff"/>
+  <text x="964" y="198" class="body">Stock · order</text>
+  <text x="964" y="222" class="small">idempotent actions</text>
+  <text x="750" y="272" class="small">Typed REST/gRPC contracts. No prompts, no UI schema.</text>
+  <text x="750" y="296" class="small">Server-side authorization on every action.</text>
+  <text x="750" y="320" class="small">The model never holds user privileges.</text>
+
+  <!-- Stores -->
+  <rect x="730" y="360" width="210" height="145" rx="12" fill="#f3e8ff" stroke="#7c3aed"/>
+  <text x="748" y="392" class="label">Conversation store</text>
+  <text x="748" y="420" class="small">one document per turn</text>
+  <text x="748" y="442" class="small">pk: tenantId / threadId</text>
+  <text x="748" y="464" class="small">UI contract + tool calls</text>
+  <text x="748" y="486" class="small">TTL for short-term turns</text>
+  <rect x="950" y="360" width="210" height="145" rx="12" fill="#ffffff" stroke="#bac6d6"/>
+  <text x="968" y="392" class="label">Observability</text>
+  <text x="968" y="420" class="small">threadId · runId</text>
+  <text x="968" y="442" class="small">toolCallId · contract</text>
+  <text x="968" y="464" class="small">render errors, latency</text>
+  <text x="968" y="486" class="small">model vs direct actions</text>
+
+  <!-- Arrows -->
+  <path d="M292 250 H356" class="arrow"/>
+  <path d="M356 300 H294" class="arrow"/>
+  <text x="298" y="236" class="proto">AG-UI</text>
+  <text x="298" y="328" class="small">SSE</text>
+  <path d="M662 200 H726" class="arrow"/>
+  <text x="666" y="186" class="proto">tools</text>
+  <path d="M662 440 H726" class="dash"/>
+  <text x="664" y="428" class="small">turns</text>
+
+  <!-- Protocol strip -->
+  <rect x="40" y="540" width="1120" height="290" rx="12" fill="#ffffff" stroke="#bac6d6"/>
+  <text x="64" y="578" class="label">Contracts at each hop</text>
+  <text x="64" y="614" class="proto">Client ↔ BFF</text>
+  <text x="250" y="614" class="body">AG-UI events over SSE: run lifecycle, text, tool calls, state. Every UI block carries its contract version.</text>
+  <text x="64" y="648" class="proto">BFF ↔ Agent</text>
+  <text x="250" y="648" class="body">Same message list the client sees; rollback = truncate, edit = new branch from a parent turn.</text>
+  <text x="64" y="682" class="proto">Agent ↔ Domain</text>
+  <text x="250" y="682" class="body">Typed tools that call domain APIs with the user's delegated identity and an idempotency key.</text>
+  <text x="64" y="716" class="proto">BFF ↔ Store</text>
+  <text x="250" y="716" class="body">Append-only turns with threadId, parentId, toolCalls, UI contract; facts are re-read at render time.</text>
+  <text x="64" y="760" class="small">Correlation: threadId → runId → toolCallId on every hop, log and stored turn.</text>
+  <text x="64" y="786" class="small">Streaming rule: never call domain APIs with partial tool arguments; wait for the completed call.</text>
+  <text x="64" y="812" class="small">Original conceptual diagram for this research. Not a deployment template.</text>
+</svg>

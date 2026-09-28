@@ -99,6 +99,7 @@ const app = new App({ name: "Contoso Energy Dashboard", version: "1.0.0" });
 
 function applyHostContext(ctx: McpUiHostContext | undefined) {
   if (!ctx) return;
+  if (ctx.theme) document.documentElement.dataset.theme = ctx.theme;
   if (ctx.displayMode) shell.dataset.mode = ctx.displayMode;
   const canFullscreen = ctx.availableDisplayModes?.includes("fullscreen") ?? false;
   modeBtn.hidden = !canFullscreen;

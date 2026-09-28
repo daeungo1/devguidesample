@@ -1,0 +1,34 @@
+{
+  "name": "contoso-concierge-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Contoso device concierge: CopilotKit generative UI demo on Azure OpenAI GPT-5.6.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/azure": "^3.0.122",
+    "@azure/identity": "^4.13.0",
+    "@copilotkit/a2ui-renderer": "1.73.0",
+    "@copilotkit/react-core": "1.73.0",
+    "@copilotkit/runtime": "1.73.0",
+    "next": "15.5.25",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

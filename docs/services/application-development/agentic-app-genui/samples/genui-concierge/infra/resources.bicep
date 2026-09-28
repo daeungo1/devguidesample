@@ -26,7 +26,8 @@ var terraDeployment = 'gpt-5.6-terra'
 
 // Built-in role definition IDs
 var acrPullRoleId = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
-var openAiUserRoleId = '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
+// Cognitive Services User: Entra ID inference access on a Foundry resource.
+var inferenceRoleId = 'a97b65f3-24c7-4388-baec-2e87135dc908'
 
 resource logs 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   name: 'log-${resourceToken}'
@@ -98,23 +99,23 @@ resource terra 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = {
   dependsOn: [luna]
 }
 
-resource appOpenAiUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(foundry.id, identity.id, openAiUserRoleId)
+resource appInference 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(foundry.id, identity.id, inferenceRoleId)
   scope: foundry
   properties: {
     principalId: identity.properties.principalId
     principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', openAiUserRoleId)
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', inferenceRoleId)
   }
 }
 
-resource developerOpenAiUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(principalId)) {
-  name: guid(foundry.id, principalId, openAiUserRoleId)
+resource developerInference 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(principalId)) {
+  name: guid(foundry.id, principalId, inferenceRoleId)
   scope: foundry
   properties: {
     principalId: principalId
     principalType: principalType
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', openAiUserRoleId)
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', inferenceRoleId)
   }
 }
 
@@ -157,6 +158,8 @@ resource mcp 'Microsoft.App/containerApps@2024-03-01' = {
           env: [
             { name: 'HOST', value: '0.0.0.0' }
             { name: 'PORT', value: '3001' }
+            // DNS rebinding protection: accept only the internal ingress host name.
+            { name: 'ALLOWED_HOSTS', value: 'ca-mcp-${resourceToken}.internal.${environment.properties.defaultDomain}' }
           ]
           probes: [
             { type: 'Liveness', httpGet: { path: '/healthz', port: 3001 }, periodSeconds: 30 }
@@ -201,7 +204,7 @@ resource web 'Microsoft.App/containerApps@2024-03-01' = {
       scale: { minReplicas: 1, maxReplicas: 2 }
     }
   }
-  dependsOn: [acrPull, appOpenAiUser]
+  dependsOn: [acrPull, appInference]
 }
 
 output registryLoginServer string = registry.properties.loginServer

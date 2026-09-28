@@ -4,3 +4,4 @@ kind: runnable
 used_by:
   - index
   - patterns
+  - production

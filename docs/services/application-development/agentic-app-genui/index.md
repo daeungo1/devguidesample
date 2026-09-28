@@ -258,6 +258,7 @@ Claude Desktop, VS Code GitHub Copilot, Microsoft 365 Copilot 등을 지원
 | [CopilotKit와 프로토콜 조합](protocols/index.md) | AG-UI, MCP, MCP Apps는 어디에 연결되는가 | 에이전트·플랫폼 개발자 |
 | [Google 연구와 A2UI](google-a2ui/index.md) | 논문의 근거와 A2UI 명세·E2E는 무엇이 다른가 | 아키텍트·연구 담당자 |
 | [도입 아키텍처와 평가 계획](adoption/index.md) | 어떤 순서와 기준으로 제품에 도입하는가 | 기술 의사결정자·구현팀 |
+| [프로덕션 아키텍처](production/index.md) | 대화 기록 보관, 롤백·편집, BFF↔BE 계약을 어떻게 설계하는가 | 아키텍트·플랫폼 개발자 |
 
 방향 판단에는 이 요약과 도입 문서를, 설계에는 패턴·프로토콜·A2UI 문서를
 함께 읽는다. 관련 자식 문서는 하나의 조사 기준일을 공유한다.

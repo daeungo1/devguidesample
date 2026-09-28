@@ -1,20 +1,23 @@
 import { createMcpExpressApp } from "@modelcontextprotocol/express";
 import { NodeStreamableHTTPServerTransport } from "@modelcontextprotocol/node";
-import type { Request, Response } from "express";
+import express, { type Request, type Response } from "express";
 import { createServer } from "./server.js";
 
 const port = Number.parseInt(process.env.PORT ?? "3001", 10);
 const host = process.env.HOST ?? "127.0.0.1";
 const allowedHosts = process.env.ALLOWED_HOSTS?.split(",").map((h) => h.trim()).filter(Boolean);
 
-const app = createMcpExpressApp({ host, ...(allowedHosts?.length ? { allowedHosts } : {}) });
-
+// Health probes arrive with the pod IP as Host, so they are served before
+// the MCP app's Host-header (DNS rebinding) validation runs.
+const app = express();
 app.get("/healthz", (_req: Request, res: Response) => {
   res.json({ status: "ok" });
 });
 
+const mcpApp = createMcpExpressApp({ host, ...(allowedHosts?.length ? { allowedHosts } : {}) });
+
 // Stateless Streamable HTTP: a fresh server per request keeps replicas interchangeable.
-app.all("/mcp", async (req: Request, res: Response) => {
+mcpApp.all("/mcp", async (req: Request, res: Response) => {
   const server = createServer();
   const transport = new NodeStreamableHTTPServerTransport({ sessionIdGenerator: undefined });
 
@@ -33,6 +36,8 @@ app.all("/mcp", async (req: Request, res: Response) => {
     }
   }
 });
+
+app.use(mcpApp);
 
 const httpServer = app.listen(port, host, () => {
   console.log(`Contoso Energy MCP server listening on http://${host}:${port}/mcp`);

@@ -1,5 +1,5 @@
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --bg: #ffffff;
   --fg: #111827;
   --muted: #6b7280;
@@ -10,16 +10,15 @@
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0b1220;
-    --fg: #e5e7eb;
-    --muted: #9ca3af;
-    --line: #1f2937;
-    --brand: #2dd4bf;
-    --brand-soft: #134e4a;
-    --track: #1f2937;
-  }
+/* Light by default to match the embedding chat; switch only when the host says so. */
+:root[data-theme="dark"] {
+  --bg: #0b1220;
+  --fg: #e5e7eb;
+  --muted: #9ca3af;
+  --line: #1f2937;
+  --brand: #2dd4bf;
+  --brand-soft: #134e4a;
+  --track: #1f2937;
 }
 
 * { box-sizing: border-box; }

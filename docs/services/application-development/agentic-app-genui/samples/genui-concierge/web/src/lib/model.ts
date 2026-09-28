@@ -1,17 +1,27 @@
 import { createAzure } from "@ai-sdk/azure";
-import { DefaultAzureCredential, getBearerTokenProvider } from "@azure/identity";
+import {
+  AzureCliCredential,
+  ManagedIdentityCredential,
+  getBearerTokenProvider,
+  type TokenCredential,
+} from "@azure/identity";
 
-const SCOPE = "https://cognitiveservices.azure.com/.default";
+// Scope for Microsoft Entra ID tokens on Foundry resources.
+const SCOPE = "https://ai.azure.com/.default";
 
 let tokenProvider: (() => Promise<string>) | undefined;
 
+/**
+ * Deterministic credentials instead of DefaultAzureCredential: the
+ * user-assigned managed identity in Container Apps, the Azure CLI login locally.
+ */
+function createCredential(): TokenCredential {
+  const clientId = process.env.AZURE_CLIENT_ID;
+  return clientId ? new ManagedIdentityCredential({ clientId }) : new AzureCliCredential();
+}
+
 function getTokenProvider() {
-  // In Container Apps, AZURE_CLIENT_ID selects the user-assigned managed identity.
-  // Locally, DefaultAzureCredential falls back to the developer's Azure CLI login.
-  tokenProvider ??= getBearerTokenProvider(
-    new DefaultAzureCredential({ managedIdentityClientId: process.env.AZURE_CLIENT_ID }),
-    SCOPE,
-  );
+  tokenProvider ??= getBearerTokenProvider(createCredential(), SCOPE);
   return tokenProvider;
 }
 
