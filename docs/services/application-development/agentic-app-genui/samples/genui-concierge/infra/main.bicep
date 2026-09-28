@@ -21,6 +21,10 @@ param webImageName string = ''
 @description('Image for the mcp service. azd fills this after the first deploy.')
 param mcpImageName string = ''
 
+@secure()
+@description('Optional shared password for the demo login gate. Empty disables the gate.')
+param demoPassword string = ''
+
 var tags = { 'azd-env-name': environmentName }
 
 resource rg 'Microsoft.Resources/resourceGroups@2024-03-01' = {
@@ -39,6 +43,7 @@ module resources 'resources.bicep' = {
     principalType: principalType
     webImageName: webImageName
     mcpImageName: mcpImageName
+    demoPassword: demoPassword
   }
 }
 

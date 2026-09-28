@@ -123,6 +123,32 @@ Managed identity ─► Foundry: Cognitive Services User · ACR: AcrPull
 - **MCP 서버의 헬스 체크는 Host 검증 앞에 둡니다.** probe는 Pod IP를 Host로 보내므로 `/healthz`를
   DNS rebinding 검증보다 먼저 처리하지 않으면 리비전이 Unhealthy가 됩니다.
 
+## 접속 비밀번호 게이트 (선택)
+
+외부에 주소를 공유할 때 모델 호출 비용과 무단 사용을 막기 위한 **공유 비밀번호 게이트**입니다.
+
+![Contoso 로고와 데모 접속 비밀번호 입력란, 입장하기 버튼이 있는 로그인 화면](assets/login.png)
+
+- `DEMO_PASSWORD` 환경 변수가 있으면 모든 페이지와 API(`/api/copilotkit`, `/api/catalog`)를 보호합니다.
+  페이지는 `/login`으로 보내고, API는 401을 반환합니다. 변수가 없으면(로컬 개발) 게이트가 꺼집니다.
+- 로그인에 성공하면 비밀번호 원문이 아니라 HMAC으로 만든 세션 토큰을 `HttpOnly · Secure · SameSite=Lax`
+  쿠키(7일)에 저장합니다. 비밀번호를 바꾸면 기존 세션은 자동으로 무효가 됩니다.
+- 비교는 상수 시간으로 하고, 실패 응답은 약 0.6초 지연해 무차별 대입을 늦춥니다.
+- 비밀번호는 저장소에 두지 않고 **Container Apps secret**으로만 주입합니다.
+
+```powershell
+# 기존 배포에 설정하거나 비밀번호를 바꿀 때
+az containerapp secret set -g <rg> -n <web-app> --secrets "demo-password=<password>"
+az containerapp update     -g <rg> -n <web-app> --set-env-vars "DEMO_PASSWORD=secretref:demo-password"
+
+# Bicep으로 배포할 때는 @secure() 파라미터로 넘깁니다 (azd: azd env set DEMO_PASSWORD <password>)
+az deployment sub create ... --parameters demoPassword=<password>
+```
+
+Bicep을 `demoPassword` 없이 다시 배포하면 secret과 환경 변수가 빠져 게이트가 꺼집니다.
+이 게이트는 데모 공유용이며, 사용자별 인증이 필요한 운영 환경에서는 Microsoft Entra ID 같은
+ID 공급자 연동으로 대체해야 합니다.
+
 ## 로컬 실행
 
 필요 조건: Node.js 20.19 이상 권장, Azure CLI 로그인, 아래 배포로 만든 Foundry 리소스
@@ -179,7 +205,7 @@ Bicep은 GPT-5.6 Luna·Terra를 GlobalStandard, 각 50K TPM으로 배포합니�
 
 ```powershell
 cd mcp; npm test; npm run typecheck     # 13 tests
-cd ../web; npm test; npm run typecheck  # 17 tests
+cd ../web; npm test; npm run typecheck  # 21 tests
 ```
 
 2026-09-28 koreacentral 배포에서 headless Microsoft Edge(1440×900)로 네 단계를 연속 실행한 결과입니다.

@@ -12,6 +12,10 @@ param webImageName string
 
 param mcpImageName string
 
+@secure()
+@description('Optional shared password for the demo login gate. Empty disables the gate.')
+param demoPassword string = ''
+
 @description('GPT-5.6 models to deploy. Tool calling on GPT-5.6 uses the Responses API.')
 param modelVersion string = '2026-07-09'
 
@@ -185,6 +189,7 @@ resource web 'Microsoft.App/containerApps@2024-03-01' = {
     configuration: {
       ingress: { external: true, targetPort: 3000, transport: 'http' }
       registries: [{ server: registry.properties.loginServer, identity: identity.id }]
+      secrets: empty(demoPassword) ? [] : [{ name: 'demo-password', value: demoPassword }]
     }
     template: {
       containers: [
@@ -192,13 +197,13 @@ resource web 'Microsoft.App/containerApps@2024-03-01' = {
           name: 'web'
           image: empty(webImageName) ? placeholderImage : webImageName
           resources: { cpu: json('0.5'), memory: '1Gi' }
-          env: [
+          env: concat([
             { name: 'AZURE_CLIENT_ID', value: identity.properties.clientId }
             { name: 'AZURE_OPENAI_RESOURCE_NAME', value: foundry.name }
             { name: 'AZURE_OPENAI_LUNA_DEPLOYMENT', value: luna.name }
             { name: 'AZURE_OPENAI_TERRA_DEPLOYMENT', value: terra.name }
             { name: 'MCP_SERVER_URL', value: 'https://${mcp.properties.configuration.ingress.fqdn}/mcp' }
-          ]
+          ], empty(demoPassword) ? [] : [{ name: 'DEMO_PASSWORD', secretRef: 'demo-password' }])
         }
       ]
       scale: { minReplicas: 1, maxReplicas: 2 }
