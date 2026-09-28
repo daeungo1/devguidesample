@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+name: genui-concierge
+metadata:
+  template: genui-concierge@1.0.0
+services:
+  web:
+    project: ./web
+    language: ts
+    host: containerapp
+    docker:
+      path: Dockerfile
+      remoteBuild: true
+  mcp:
+    project: ./mcp
+    language: ts
+    host: containerapp
+    docker:
+      path: Dockerfile
+      remoteBuild: true
