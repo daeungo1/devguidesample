@@ -25,6 +25,7 @@ export const SNAPSHOT_VERSION = 1;
 /** Versions of every UI contract the model can target. Bump when a schema changes. */
 export const UI_CONTRACT = {
   phoneComparison: "show_phone_comparison@1",
+  productSpotlight: "show_product_spotlight@1",
   bundleCatalog: "contoso-home-bundle@1",
 } as const;
 

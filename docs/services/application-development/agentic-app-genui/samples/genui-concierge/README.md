@@ -31,12 +31,37 @@ API가 제품 ID로 내려주므로, 모델이 이미지 URL을 만들지 않습
 
 | 단계 | 시나리오 | 모델이 결정하는 것 | 앱이 소유하는 것 | CopilotKit API |
 |---|---|---|---|---|
-| 1 Controlled | 스마트폰 3종 비교 | 어떤 컴포넌트를, 어떤 제품 ID로 | 화면 구조, 디자인, 가격·재고 | `useComponent` |
-| 2 Declarative × Controlled 블록 | 신혼집 가전 번들 | 승인된 블록의 조합·배치 | 블록 구현, 계약 버전, 제품 사실, 합계 | A2UI 카탈로그 (`a2ui={{ catalog }}`) |
+| 1 Controlled | 스마트폰 비교 또는 단일 제품 상세 | 두 컴포넌트 중 무엇을, 어떤 제품 ID로 | 화면 구조, 디자인, 가격·재고 | `useComponent` ×2 |
+| 2 Declarative × Controlled 블록 | 가구·계절·예산별 가전 번들 | 승인된 블록의 조합·배치 | 블록 구현, 계약 버전, 제품 사실, 합계 | A2UI 카탈로그 (`a2ui={{ catalog }}`) |
 
-2단계의 카탈로그 블록(`ProductTile`, `BundleSummary`)은 그 자체가 Controlled 컴포넌트입니다.
-모델이 배치를 바꿔도 블록 안의 품질·접근성·가격 계산은 앱 코드가 보장합니다. 두 컴포넌트에는
-UI 계약 버전(`show_phone_comparison@1`, `contoso-home-bundle@1`)이 표시됩니다.
+1단계에는 미리 만든 컴포넌트가 두 개(`show_phone_comparison`, `show_product_spotlight`) 있어,
+모델이 **어떤 컴포넌트를 쓸지**부터 고릅니다. 2단계의 카탈로그 블록(`ProductTile`, `BundleSummary`)은
+그 자체가 Controlled 컴포넌트입니다. 모델이 배치를 바꿔도 블록 안의 품질·접근성·가격 계산은 앱 코드가
+보장합니다. 각 컴포넌트에는 UI 계약 버전(`show_phone_comparison@1`, `show_product_spotlight@1`,
+`contoso-home-bundle@1`)이 표시됩니다.
+
+### 예시 질문과 조합
+
+각 단계 카드의 **예시 질문 더 보기**를 펼치면 대표 질문 외에 4개를 더 실행할 수 있습니다. 질문마다
+다른 컴포넌트나 블록 조합이 나오도록 카탈로그를 준비했고, `web/src/lib/catalog.test.ts`가 각 시나리오를
+뒷받침하는 데이터(예산 합계, 지역 출시 여부, 카테고리)를 검증합니다.
+
+| 단계 | 예시 질문 | 기대 조합 |
+|---|---|---|
+| 1 | 사진을 많이 찍는데 X Ultra, X Fold, X Lite 중 뭐가 나을까? (대표) | 비교 카드 · 3종 |
+| 1 | 업무용 큰 화면, X Fold와 X Ultra 비교 | 비교 카드 · 2종 |
+| 1 | 부모님 선물용 150만원 이하 | 비교 카드 · X Lite, X Pro, X Flip |
+| 1 | 가벼운 X Pro 자세히 | **제품 상세 카드** · 1종 + 추천 이유 |
+| 1 | 독일 지역 기준 폴더블 | 비교 카드 · EUR 가격, X Flip “이 지역 미출시” |
+| 2 | 4인 가족 30평 신혼집 TV·냉장고·세탁기·건조기 (대표) | 타일 2×2 · 합계 |
+| 2 | 원룸, 예산 300만원 TV·냉장고·세탁기 | 컴팩트 3종 · 예산 대비 합계 |
+| 2 | 장마·여름 에어컨·제습기·공기청정기 | 계절 가전 3종 · 에너지 노트 |
+| 2 | 재택근무 서재 TV + 업무용 스마트폰 | 가전과 스마트폰을 섞은 번들 |
+| 2 | 부모님 댁 1등급 냉장고·세탁기·건조기 + 로봇청소기 | 타일 4개 · 에너지 노트 |
+
+카탈로그에는 이 조합을 위해 X Pro, 43형 QLED TV, 12kg 슬림 세탁기, 제습기, 공기청정기, 로봇청소기를
+추가했습니다. 사용자가 다른 지역(KR·US·DE)을 명시하면 모델은 그 지역을 컴포넌트의 `region` 속성으로
+넘기고, 가격과 출시 여부는 여전히 카탈로그 API가 계산합니다.
 
 ## 운영 과제 시연
 
@@ -70,7 +95,8 @@ UI 계약 버전(`show_phone_comparison@1`, `contoso-home-bundle@1`)이 표시�
 
 모든 단계에서 가격·재고·전력 수치는 모델 출력이 아니라 앱이 소유한 데이터에서 옵니다.
 
-- Controlled: `PhoneComparison`은 제품 ID만 받고 `/api/catalog`에서 가격·재고·이미지를 조회합니다.
+- Controlled: `PhoneComparison`과 `ProductSpotlight`는 제품 ID만 받고 `/api/catalog`에서 가격·재고·이미지를
+  조회합니다(`web/src/components/controlled-schemas.test.ts`가 두 스키마에 가격·재고·이미지 속성이 없음을 검증).
 - Declarative: 카탈로그 정의에 가격·통화·재고 속성이 **아예 없습니다**
   (`web/src/a2ui/definitions.test.ts`가 이를 계약으로 검증).
 - MCP Apps: 계산은 MCP 서버의 `simulate_savings`가 담당합니다.
@@ -99,12 +125,16 @@ Managed identity ─► Foundry: Cognitive Services User · ACR: AcrPull
 ## 참고한 CopilotKit 자료와의 차이
 
 세 패턴의 분류와 데모 화면 구성은 CopilotKit의 [Generative UI showcase][ck-showcase]를 따랐습니다.
-이 showcase는 실행 코드 없이 README·이미지·가이드 PDF로 된 개념 자료이므로, 구현은 CopilotKit 1.73의
-[Generative UI 문서][ck-genui]와 [MCP Apps showcase 코드][ck-mcp-showcase]를 기준으로 했습니다.
+이 showcase는 실행 코드 없이 README·이미지·가이드 PDF로 된 개념 자료입니다. README가 실행 예제로 연결하는
+[Generative UI Playground][ck-playground]는 세 패턴을 카드로 나누고 카드마다 클릭 가능한 예시 프롬프트를
+3–6개 둡니다. Controlled 카드는 날씨·주식·작업 승인처럼 **여러 사전 제작 컴포넌트** 중 하나를 에이전트가
+고르게 합니다. 이 데모도 같은 구성을 따라 단계마다 대표 질문과 펼쳐 보는 예시 질문 4개를 두고, Controlled에
+컴포넌트 두 개를 등록했습니다. 구현은 CopilotKit 1.73의 [Generative UI 문서][ck-genui]와
+[MCP Apps showcase 코드][ck-mcp-showcase]를 기준으로 했습니다.
 
-| 패턴 | showcase README의 방식 | 이 데모의 방식 | 이유 |
+| 패턴 | showcase README·Playground의 방식 | 이 데모의 방식 | 이유 |
 |---|---|---|---|
-| Controlled | `useFrontendTool` + 실행 단계별 `render` | `useComponent`(Components as Tools) + `followUp: false` | 최신 문서의 표시 전용 권장 API, 카드 중복 렌더링 방지 |
+| Controlled | `useFrontendTool` + 실행 단계별 `render`, 컴포넌트 여러 개(Weather·Stock·TaskApproval) | `useComponent`(Components as Tools) ×2(비교 카드·제품 상세) + `followUp: false` | 최신 문서의 표시 전용 권장 API, 카드 중복 렌더링 방지. 컴포넌트 선택 자체를 모델에 맡김 |
 | Declarative | ADK(Python) 에이전트 + A2UI **v0.8** 메시지(`surfaceUpdate` 등) + `createA2UIMessageRenderer` | `BuiltInAgent` + A2UI 카탈로그(`createCatalog`, `a2ui={{ catalog }}`) | v0.8은 Legacy, 현재는 v0.9.1. 블록을 Controlled 컴포넌트로 구현 |
 | Open-ended | `.use(new MCPAppsMiddleware(...))` | 런타임 `mcpApps` 옵션(같은 미들웨어를 자동 적용) + `openGenerativeUI` | 1.73 런타임 내장 옵션, Fully Open 단계 추가 |
 | 모델 | OpenAI 등 공개 모델 | Azure OpenAI GPT-5.6 Luna·Terra, Responses API, Entra ID | Azure 키 없는 운영 구성 |
@@ -114,6 +144,7 @@ showcase가 함께 소개하는 Open-JSON-UI는 이 데모에 넣지 않았습�
 [ck-showcase]: https://github.com/CopilotKit/CopilotKit/tree/main/examples/showcases/generative-ui
 [ck-genui]: https://docs.copilotkit.ai/concepts/generative-ui-overview
 [ck-mcp-showcase]: https://github.com/CopilotKit/CopilotKit/tree/main/examples/showcases/mcp-apps
+[ck-playground]: https://github.com/CopilotKit/generative-ui-playground
 
 ## 설계 결정
 
@@ -227,7 +258,7 @@ Bicep은 GPT-5.6 Luna·Terra를 GlobalStandard, 각 50K TPM으로 배포합니�
 
 ```powershell
 cd mcp; npm test; npm run typecheck     # 13 tests
-cd ../web; npm test; npm run typecheck  # 22 tests
+cd ../web; npm test; npm run typecheck  # 30 tests
 ```
 
 두 Dockerfile은 Node.js 24 이미지의 빌드 단계에서 같은 테스트를 먼저 실행하므로, 테스트가 실패하면

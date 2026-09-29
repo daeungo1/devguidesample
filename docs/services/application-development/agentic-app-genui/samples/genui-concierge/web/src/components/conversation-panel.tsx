@@ -14,6 +14,7 @@ const STORAGE_PREFIX = "contoso-genui-thread:";
 
 const UI_LABELS: Record<string, string> = {
   show_phone_comparison: "Controlled",
+  show_product_spotlight: "Controlled",
   render_a2ui: "Declarative",
   generate_a2ui: "Declarative",
   open_energy_dashboard: "MCP Apps",

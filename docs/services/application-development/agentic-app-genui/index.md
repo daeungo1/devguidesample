@@ -129,8 +129,10 @@ video 요소를 지원하지 않으면 재생할 수 없습니다.
 </video>
 
 *Screenshot S4. CopilotKit로 만든 “Generative UI Specs” 데모 애플리케이션의
-화면 녹화(33초, 음성 없음). 이 리서치가 참고용으로 확인한 데모이며 공개
-배포 주소는 확인하지 않았다. 화면의 값은 예시 데이터다.*
+화면 녹화(33초, 음성 없음). 이 리서치가 참고용으로 확인한 데모이며 화면의 값은
+예시 데이터다. 2026-09-29에 다시 확인한 결과, 카드별 예시 프롬프트 구성이
+[Generative UI showcase][ck-showcase] README가 실행 예제로 연결하는
+[Generative UI Playground][ck-playground] 저장소와 일치한다.*
 
 데모는 같은 앱 안에서 세 방식을 나란히 실행한다. 왼쪽 카드에서 방식을 고르고
 오른쪽 채팅에서 요청하면 각 방식으로 UI가 생성된다.
@@ -393,7 +395,7 @@ agentic-app-genui/
 | S1. Gemini dynamic view 화면 녹화(GIF) | 이 문서 | [Gemini 3 앱 소개][gemini-app]. 편집된 소개 영상, 인용 |
 | S2. AG-UI Dojo 실행 화면 | [패턴 비교](patterns/index.md) | [AG-UI Dojo][dojo]. 공개 데모 실행 화면, 인용 |
 | S3. CopilotKit 제품 소개 화면 | [프로토콜 조합](protocols/index.md) | [제품 페이지][copilotkit-product]. 벤더 주장, 인용 |
-| S4. 세 방식 비교 데모 녹화(MP4) | 이 문서 | CopilotKit 기반 데모 애플리케이션. 공개 배포 주소 미확인 |
+| S4. 세 방식 비교 데모 녹화(MP4) | 이 문서 | CopilotKit 기반 데모 애플리케이션. 구성은 [Generative UI Playground][ck-playground]와 일치 |
 
 Screenshot은 원문의 주장과 화면 구성을 설명하기 위한 인용이며 저작권은 각
 저작자에게 있다. 사용한 조합의 동작을 이 저장소가 검증했다는 뜻이 아니다.
@@ -418,3 +420,5 @@ SVG(G1)로 이미 수록했으므로 화면 캡처를 따로 두지 않는다.
 [ck-vue]: https://docs.copilotkit.ai/vue
 [ck-angular]: https://docs.copilotkit.ai/angular
 [renderers]: https://a2ui.org/reference/renderers/
+[ck-showcase]: https://github.com/CopilotKit/CopilotKit/tree/main/examples/showcases/generative-ui
+[ck-playground]: https://github.com/CopilotKit/generative-ui-playground

@@ -6,7 +6,7 @@
 
 export type Region = "KR" | "US" | "DE";
 export type Currency = "KRW" | "USD" | "EUR";
-export const CATEGORIES = ["phone", "tv", "fridge", "washer", "dryer", "aircon"] as const;
+export const CATEGORIES = ["phone", "tv", "fridge", "washer", "dryer", "aircon", "dehumidifier", "purifier", "vacuum"] as const;
 export type Category = (typeof CATEGORIES)[number];
 
 export const CATEGORY_LABELS: Record<Category, string> = {
@@ -16,6 +16,9 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   washer: "세탁기",
   dryer: "건조기",
   aircon: "에어컨",
+  dehumidifier: "제습기",
+  purifier: "공기청정기",
+  vacuum: "청소기",
 };
 
 export interface Product {
@@ -90,6 +93,27 @@ const PRODUCTS: Product[] = [
     availableIn: ALL,
   },
   {
+    id: "x-pro",
+    category: "phone",
+    name: "Contoso X Pro",
+    tagline: "한 손에 들어오는 컴팩트 플래그십",
+    highlights: ["6.2형 컴팩트 화면", "3배 광학 줌", "초저전력 칩셋"],
+    specs: { 디스플레이: "6.2형 FHD+ 120Hz", 배터리: "4,300mAh", 저장공간: "256GB", 무게: "168g" },
+    prices: { KR: 1_298_000, US: 949, DE: 1_049 },
+    availableIn: ALL,
+  },
+  {
+    id: "tv-qled-43",
+    category: "tv",
+    name: "Contoso 4K QLED 43형",
+    tagline: "원룸·서재에 맞는 컴팩트 4K",
+    highlights: ["퀀텀닷 4K", "모니터 모드", "벽걸이 슬림 핏"],
+    specs: { 크기: "43형", 해상도: "4K UHD", 주사율: "60Hz" },
+    energyGrade: "1등급",
+    prices: { KR: 690_000, US: 499, DE: 549 },
+    availableIn: ALL,
+  },
+  {
     id: "tv-qled-65",
     category: "tv",
     name: "Contoso 4K QLED 65형",
@@ -145,6 +169,17 @@ const PRODUCTS: Product[] = [
     availableIn: ALL,
   },
   {
+    id: "washer-compact-12",
+    category: "washer",
+    name: "Contoso 슬림 세탁기 12kg",
+    tagline: "좁은 공간에 맞춘 슬림 드럼",
+    highlights: ["폭 55cm 슬림", "원룸 저소음 모드", "스팀 살균"],
+    specs: { 용량: "12kg", 방식: "드럼" },
+    energyGrade: "1등급",
+    prices: { KR: 790_000, US: 649, DE: 699 },
+    availableIn: ALL,
+  },
+  {
     id: "dryer-heatpump-20",
     category: "dryer",
     name: "Contoso 히트펌프 건조기 20kg",
@@ -165,6 +200,38 @@ const PRODUCTS: Product[] = [
     energyGrade: "1등급",
     prices: { KR: 2_590_000, US: 2_099, DE: 2_249 },
     availableIn: ["KR", "US"],
+  },
+  {
+    id: "dehumidifier-16",
+    category: "dehumidifier",
+    name: "Contoso AI 제습기 16L",
+    tagline: "장마철 실내 습도를 자동 관리",
+    highlights: ["16L/일 제습", "습도 자동 유지", "빨래 건조 모드"],
+    specs: { 제습량: "16L/일", 적용면적: "46㎡" },
+    energyGrade: "1등급",
+    prices: { KR: 459_000, US: 349, DE: 379 },
+    availableIn: ["KR", "US"],
+  },
+  {
+    id: "purifier-60",
+    category: "purifier",
+    name: "Contoso 360° 공기청정기",
+    tagline: "거실 전체를 360도로 정화",
+    highlights: ["360° 흡입", "미세먼지 실시간 표시", "저소음 수면 모드"],
+    specs: { 적용면적: "60㎡", 필터: "3단 헤파 필터" },
+    energyGrade: "1등급",
+    prices: { KR: 529_000, US: 399, DE: 429 },
+    availableIn: ALL,
+  },
+  {
+    id: "robot-vacuum-ai",
+    category: "vacuum",
+    name: "Contoso AI 로봇청소기",
+    tagline: "흡입·물걸레·먼지 비움까지 자동",
+    highlights: ["라이다 공간 인식", "자동 먼지 비움", "물걸레 동시 청소"],
+    specs: { 흡입력: "7,000Pa", 스테이션: "자동 먼지 비움" },
+    prices: { KR: 1_190_000, US: 899, DE: 949 },
+    availableIn: ALL,
   },
 ];
 

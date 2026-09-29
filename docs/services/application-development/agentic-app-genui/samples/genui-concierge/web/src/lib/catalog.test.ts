@@ -55,6 +55,37 @@ describe("listProducts", () => {
   });
 });
 
+// Each sample prompt in the pattern guide must resolve to a distinct, data-backed combination.
+describe("sample prompt scenarios", () => {
+  const phones = (region: "KR" | "US" | "DE") => listProducts({ region, category: "phone" });
+
+  it("offers at least two phones under 1.5M KRW for the gift prompt", () => {
+    expect(phones("KR").filter((p) => p.price <= 1_500_000).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("has a light compact phone for the spotlight prompt", () => {
+    const [pro] = listProducts({ region: "KR", ids: ["x-pro"] });
+    const lightest = [...phones("KR")].sort((a, b) => parseInt(a.specs.무게) - parseInt(b.specs.무게))[0];
+    expect(lightest.id).toBe(pro.id);
+  });
+
+  it("shows regional availability for foldables in Germany", () => {
+    const foldables = listProducts({ region: "DE", ids: ["x-fold", "x-flip"] });
+    expect(foldables.map((p) => p.inStock)).toEqual([true, false]);
+  });
+
+  it("fits a studio TV, fridge and washer within a 3M KRW budget", () => {
+    const studio = listProducts({ region: "KR", ids: ["tv-qled-43", "fridge-compact", "washer-compact-12"] });
+    expect(studio.reduce((sum, p) => sum + p.price, 0)).toBeLessThanOrEqual(3_000_000);
+  });
+
+  it("covers the seasonal and parents' home bundles", () => {
+    for (const category of ["aircon", "dehumidifier", "purifier", "vacuum", "dryer"] as const) {
+      expect(listProducts({ region: "KR", category }).length, category).toBeGreaterThan(0);
+    }
+  });
+});
+
 describe("isRegion", () => {
   it("accepts supported regions only", () => {
     expect(isRegion("DE")).toBe(true);

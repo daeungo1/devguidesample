@@ -8,9 +8,11 @@ import { UI_CONTRACT } from "@/lib/thread-store";
 
 const text = (value: unknown) => (typeof value === "string" ? value : "");
 
-function ProductTile({ productId, reason }: { productId: string; reason?: unknown }) {
-  const region = useRegion();
-  const state = useCatalog([productId], region);
+type RegionCode = "KR" | "US" | "DE";
+
+function ProductTile({ productId, reason, region: askedRegion }: { productId: string; reason?: unknown; region?: RegionCode }) {
+  const uiRegion = useRegion();
+  const state = useCatalog([productId], askedRegion ?? uiRegion);
   if (state.status === "loading") return <div className="gu-tile is-loading">제품 정보를 불러오는 중…</div>;
   if (state.status === "error") return <div className="gu-tile gu-error" role="alert">{productId}: {state.message}</div>;
   const [p] = state.products;
@@ -34,9 +36,9 @@ function ProductTile({ productId, reason }: { productId: string; reason?: unknow
   );
 }
 
-function BundleSummary({ productIds, budgetLabel }: { productIds: string[]; budgetLabel?: unknown }) {
-  const region = useRegion();
-  const state = useCatalog(productIds, region);
+function BundleSummary({ productIds, budgetLabel, region: askedRegion }: { productIds: string[]; budgetLabel?: unknown; region?: RegionCode }) {
+  const uiRegion = useRegion();
+  const state = useCatalog(productIds, askedRegion ?? uiRegion);
   if (state.status === "loading") return <div className="gu-summary is-loading">합계를 계산하는 중…</div>;
   if (state.status === "error") return <div className="gu-summary gu-error" role="alert">{state.message}</div>;
   const { products } = state;
@@ -68,9 +70,13 @@ export const bundleRenderers: CatalogRenderers<BundleDefinitions> = {
       {text(props.subtitle) && <p className="gu-muted">{text(props.subtitle)}</p>}
     </header>
   ),
-  ProductTile: ({ props }) => <ProductTile productId={props.productId} reason={props.reason} />,
+  ProductTile: ({ props }) => <ProductTile productId={props.productId} reason={props.reason} region={props.region} />,
   BundleSummary: ({ props }) => (
-    <BundleSummary productIds={Array.isArray(props.productIds) ? props.productIds : []} budgetLabel={props.budgetLabel} />
+    <BundleSummary
+      productIds={Array.isArray(props.productIds) ? props.productIds : []}
+      budgetLabel={props.budgetLabel}
+      region={props.region}
+    />
   ),
   EnergyNote: ({ props }) => <p className="gu-energy">⚡ {text(props.text)}</p>,
   TipList: ({ props }) => (

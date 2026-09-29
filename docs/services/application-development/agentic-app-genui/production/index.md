@@ -234,7 +234,8 @@ GenUI의 UI 표시는 도구 호출이므로, 데모에서는 에이전트와 �
 
 [Contoso 디바이스 컨시어지 샘플][sample]은 이 문서의 기준에 맞춰 화면을 재구성했습니다.
 
-- 상단: Controlled와 Declarative × Controlled 블록(운영 권장 경로)
+- 상단: Controlled(비교 카드·제품 상세 두 컴포넌트)와 Declarative × Controlled 블록(운영 권장 경로).
+  단계마다 대표 질문과 펼쳐 보는 예시 질문 4개로 서로 다른 컴포넌트·블록 조합을 확인
 - 중단: UI가 포함된 대화의 저장·복원, 턴 되돌리기, 이전 질문 수정 후 재실행
 - 하단(접힘): MCP Apps와 Fully Open(연구 영역)
 
@@ -265,4 +266,4 @@ GenUI의 UI 표시는 도구 호출이므로, 데모에서는 에이전트와 �
 [agui-events]: https://docs.ag-ui.com/concepts/events
 [a2ui-spec]: https://a2ui.org/specification/v0.9.1-a2ui/
 [ck-genui]: https://docs.copilotkit.ai/concepts/generative-ui-overview
-[sample]: https://github.com/daeungo1/devguidesample/tree/feature/genui-concierge-demo/docs/services/application-development/agentic-app-genui/samples/genui-concierge
+[sample]: https://github.com/daeungo1/devguidesample/tree/main/docs/services/application-development/agentic-app-genui/samples/genui-concierge

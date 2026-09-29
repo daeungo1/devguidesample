@@ -12,6 +12,8 @@ export interface PatternStage {
   appOwns: string;
   api: string;
   prompt: string;
+  /** Extra sample questions that produce different component or block combinations. */
+  more?: string[];
 }
 
 export const PRODUCTION_STAGES: PatternStage[] = [
@@ -19,11 +21,17 @@ export const PRODUCTION_STAGES: PatternStage[] = [
     step: 1,
     key: "controlled",
     name: "Controlled",
-    scenario: "스마트폰 비교 · 디자인 시스템 컴포넌트",
+    scenario: "스마트폰 비교 · 제품 상세 · 디자인 시스템 컴포넌트 2종",
     modelDecides: "어떤 컴포넌트를, 어떤 제품 ID로",
     appOwns: "화면 구조 · 디자인 · 가격·재고",
-    api: "useComponent",
+    api: "useComponent ×2",
     prompt: "사진을 많이 찍는데 X Ultra, X Fold, X Lite 중 뭐가 나을까? 비교해 줘",
+    more: [
+      "업무용으로 큰 화면이 필요해. X Fold와 X Ultra를 비교해 줘",
+      "부모님 선물용으로 150만원 이하 스마트폰을 비교해 줘",
+      "한 손에 들어오는 가벼운 X Pro가 궁금해. 자세히 보여 줘",
+      "독일 지역 기준으로 살 수 있는 폴더블 폰을 비교해 줘",
+    ],
   },
   {
     step: 2,
@@ -34,6 +42,12 @@ export const PRODUCTION_STAGES: PatternStage[] = [
     appOwns: "블록 구현 · 계약 버전 · 제품 사실 · 합계",
     api: "A2UI catalog",
     prompt: "4인 가족, 30평 신혼집이야. TV·냉장고·세탁기·건조기로 가전 번들을 구성해 줘",
+    more: [
+      "원룸에 혼자 입주해. 예산 300만원으로 TV·냉장고·세탁기를 구성해 줘",
+      "장마와 여름에 대비해 거실 에어컨, 제습기, 공기청정기를 묶어 줘",
+      "재택근무용 서재를 꾸미려고 해. 모니터로 쓸 TV와 업무용 스마트폰을 함께 구성해 줘",
+      "부모님 댁 가전을 에너지 1등급 위주로 바꾸고 싶어. 냉장고·세탁기·건조기에 로봇청소기까지 구성해 줘",
+    ],
   },
 ];
 
@@ -60,7 +74,7 @@ export const RESEARCH_STAGES: PatternStage[] = [
   },
 ];
 
-function StageCard({ stage, busy, onRun }: { stage: PatternStage; busy: string | null; onRun: (s: PatternStage) => void }) {
+function StageCard({ stage, busy, onRun }: { stage: PatternStage; busy: string | null; onRun: (prompt: string, key: string) => void }) {
   return (
     <li className={`guide-card guide-${stage.key}`}>
       <div className="guide-top">
@@ -81,9 +95,26 @@ function StageCard({ stage, busy, onRun }: { stage: PatternStage; busy: string |
           <dd>{stage.appOwns}</dd>
         </div>
       </dl>
-      <button type="button" className="guide-try" disabled={busy !== null} onClick={() => onRun(stage)}>
+      <button type="button" className="guide-try" disabled={busy !== null} onClick={() => onRun(stage.prompt, stage.key)}>
         {busy === stage.key ? "실행 중…" : `“${stage.prompt}”`}
       </button>
+      {stage.more?.length ? (
+        <details className="guide-more">
+          <summary>예시 질문 더 보기 ({stage.more.length})</summary>
+          <ul>
+            {stage.more.map((prompt, i) => {
+              const key = `${stage.key}-${i}`;
+              return (
+                <li key={key}>
+                  <button type="button" className="guide-try guide-try-sm" disabled={busy !== null} onClick={() => onRun(prompt, key)}>
+                    {busy === key ? "실행 중…" : `“${prompt}”`}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </details>
+      ) : null}
     </li>
   );
 }
@@ -94,10 +125,10 @@ export function PatternGuide({ agentId, children }: { agentId: string; children?
   const { agent } = useAgent({ agentId });
   const [busy, setBusy] = useState<string | null>(null);
 
-  async function run(stage: PatternStage) {
-    setBusy(stage.key);
+  async function run(prompt: string, key: string) {
+    setBusy(key);
     try {
-      agent.addMessage({ id: crypto.randomUUID(), role: "user", content: stage.prompt });
+      agent.addMessage({ id: crypto.randomUUID(), role: "user", content: prompt });
       await copilotkit.runAgent({ agent });
     } finally {
       setBusy(null);

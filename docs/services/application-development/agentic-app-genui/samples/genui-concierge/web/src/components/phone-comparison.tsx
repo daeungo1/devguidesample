@@ -8,6 +8,7 @@ export const phoneComparisonSchema = z.object({
   productIds: z.array(z.string()).min(2).max(4).describe("Contoso phone ids from lookup_catalog, 2-4 items"),
   focus: z.string().optional().describe("What the customer cares about, e.g. camera, battery, portability"),
   recommendedId: z.string().optional().describe("The id you recommend for this customer, if any"),
+  region: z.enum(["KR", "US", "DE"]).optional().describe("Only when the user names a region other than the current one"),
 });
 
 export type PhoneComparisonProps = z.infer<typeof phoneComparisonSchema>;
@@ -16,8 +17,9 @@ export type PhoneComparisonProps = z.infer<typeof phoneComparisonSchema>;
  * Controlled pattern: a pre-built, design-system component. The agent only
  * chooses which products to show; prices and stock come from /api/catalog.
  */
-export function PhoneComparison({ productIds, focus, recommendedId }: Partial<PhoneComparisonProps>) {
-  const region = useRegion();
+export function PhoneComparison({ productIds, focus, recommendedId, region: askedRegion }: Partial<PhoneComparisonProps>) {
+  const uiRegion = useRegion();
+  const region = askedRegion ?? uiRegion;
   const catalog = useCatalog(productIds, region);
 
   return (
