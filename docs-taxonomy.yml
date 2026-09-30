@@ -51,6 +51,7 @@ services:
 technologies:
   azure-cli: Azure CLI
   bicep: Bicep
+  computer-use: Computer use agents
   cosmos-db: Azure Cosmos DB
   docker: Docker
   dotnet: .NET
@@ -128,6 +129,10 @@ official_source_hosts:
   - a2ui.org
   - generativeui.github.io
   - blog.google
+  - openai.com
+  - ai.meta.com
+  - introducing.muse.ai
+  - research.meta.ai
   - openjdk.org
   - kubernetes.io
   - www.cncf.io
