@@ -1,15 +1,15 @@
 ---
 title: "Agent 서비스 준비: Frontier Agent 패턴을 Azure에 매핑하기"
-description: dots와 Muse의 여섯 구성 요소를 Foundry hosted agent, routines, memory, toolbox 승인, Prompt Shields, Entra Agent ID, Agent 365에 대응시키고, 플랫폼이 제공하는 부분과 직접 설계할 제어면을 구분해 단계별 도입 순서를 제안합니다.
+description: dots와 Muse의 여섯 구성 요소를 Foundry hosted agent, routines, memory, toolbox 승인, Browser Automation과 computer use 도구, Prompt Shields, Entra Agent ID, Agent 365에 대응시키고, 플랫폼이 제공하는 부분과 직접 설계할 제어면을 구분해 단계별 도입 순서를 제안합니다.
 document_type: research
 topic_order: 3
 services: [application-development, microsoft-foundry, microsoft-entra-id]
-technologies: [mcp]
+technologies: [mcp, computer-use]
 tags: [design, secure, evaluate, ai-agents]
 status: current
 verification_status: verified
 published_at: 2026-09-30
-sources_checked_at: 2026-09-30
+sources_checked_at: 2026-10-07
 official_sources:
   - title: What are hosted agents?
     url: https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents
@@ -23,6 +23,10 @@ official_sources:
     url: https://learn.microsoft.com/azure/foundry/agents/how-to/tools/toolbox
   - title: Using function tools with human in the loop approvals
     url: https://learn.microsoft.com/agent-framework/agents/tools/tool-approval
+  - title: Use the computer use tool for agents (preview)
+    url: https://learn.microsoft.com/azure/foundry/agents/how-to/tools/computer-use
+  - title: Automate browser tasks with the Browser Automation tool (preview)
+    url: https://learn.microsoft.com/azure/foundry/agents/how-to/tools/browser-automation
   - title: Prompt Shields in Microsoft Foundry
     url: https://learn.microsoft.com/azure/foundry/openai/concepts/content-filter-prompt-shields
   - title: What is the Microsoft agent identity platform
@@ -37,7 +41,8 @@ official_sources:
 
 # Agent 서비스 준비: Frontier Agent 패턴을 Azure에 매핑하기
 
-**조사 기준일: 2026-09-30.** [dots](../openai-dots/index.md)와
+**조사 기준일: 2026-09-30. 화면 조작 도구 보강: 2026-10-07.**
+[dots](../openai-dots/index.md)와
 [Muse](../meta-muse/index.md)는 소비자·업무용 완제품이다. 우리가 준비하는 Agent
 서비스는 대개 조직의 데이터와 시스템 위에서 동작하는 **자체 에이전트**다. 두 제품이
 보여 준 설계를 그대로 복제할 수는 없지만, 같은 여섯 구성 요소를 Azure에서 어떻게
@@ -47,13 +52,15 @@ official_sources:
 
 - frontier agent의 여섯 구성 요소 가운데 Azure 플랫폼이 이미 제공하는 것은 무엇인가?
 - 플랫폼이 제공하지 않아 **직접 설계해야 하는 부분**은 어디인가?
+- API가 없는 시스템을 다루는 화면 조작(CUA)은 어떤 도구로, 어떤 순서로 도입하는가?
 - 어떤 순서로 도입해야 위험을 통제하면서 가치를 빨리 확인할 수 있는가?
 
 ## 조사 범위와 방법
 
 - Microsoft Learn에서 Foundry Agent Service의 hosted agent, routines, reminder tool,
-  memory, toolbox와 도구 승인, Prompt Shields, Microsoft Entra Agent ID, Microsoft
-  Agent 365 문서를 검색하고 원문 전체를 확인했다.
+  memory, toolbox와 도구 승인, Browser Automation과 computer use 도구, Prompt
+  Shields, Microsoft Entra Agent ID, Microsoft Agent 365 문서를 검색하고 원문
+  전체를 확인했다.
 - 각 문서의 preview 표시, 제한, 지역, 전제 조건을 표에 함께 적었다.
 - 실제 배포나 성능 측정은 하지 않았다. 권장 구성은 공식 문서의 기능 범위에 이
   리서치의 설계 판단을 더한 것이며, 판단에 해당하는 부분은 “권고”로 구분한다.
@@ -62,7 +69,8 @@ official_sources:
 
 | 구성 요소 | dots·Muse의 구현 | Azure에서 확인한 기능 | 직접 설계할 부분 |
 |---|---|---|---|
-| 전용 실행 환경 | 사용자·dot별 지속 클라우드 컴퓨터와 브라우저 | Foundry hosted agent의 세션별 VM 격리 sandbox, `$HOME`·`/files` 지속, state store | 세션을 넘는 사용자 단위 작업 공간 설계, 브라우저 실행 환경(이 리서치 범위 밖) |
+| 전용 실행 환경 | 사용자·dot별 지속 클라우드 컴퓨터와 브라우저 | Foundry hosted agent의 세션별 VM 격리 sandbox, `$HOME`·`/files` 지속, state store | 세션을 넘는 사용자 단위 작업 공간 설계 |
+| 화면 조작 | dots의 자체 브라우저, Muse의 accessibility tree 기반 브라우저 sub-agent와 사용자 조작 인계 | Browser Automation 도구(preview, DOM 기반, Playwright Workspaces, Live View·Take control), computer use 도구(preview, 스크린샷 기반) | API 우선 경로 선택, computer use 실행 루프와 sandbox, safety check를 승인 흐름에 연결 |
 | 상시 실행과 선제성 | 24/7 동작, 읽기 전용 proactive research, 이벤트 기반 후속 작업 | routines(schedule, timer, GitHub issue, Teams 메시지), reminder tool(preview), Responses background 모드 | 읽기 전용 선제 작업과 쓰기 작업의 실행 경로 분리 |
 | 연결 | Plugin 4,000개 이상, connector와 SKILL | Toolbox MCP endpoint, Toolbox의 통합 인증 | 업무 시스템별 읽기·쓰기 권한 분리와 도구 위험 등급 |
 | 기억과 개인화 | 피드백 학습, 편집 가능한 Memory 파일 | Foundry memory(preview): 프로필·대화 요약·절차 기억, 항목 CRUD, TTL | 사용자에게 기억을 보여 주고 지우는 UI, memory 오염 대응 |
@@ -70,7 +78,7 @@ official_sources:
 | 투명성과 통제 | Activity View, 활동 로그, 승인 카드, 목표 화면 | Application Insights 자동 연결과 OpenTelemetry trace, Agent 365 registry | 사용자용 활동 로그·승인 UI와 행동 감사 기록 |
 | 에이전트 신원 | specialist dots의 조직 부여 신원·자격 증명 | 에이전트별 Microsoft Entra ID(agent identity), OBO, Entra Agent ID, Agent 365 | 에이전트별 최소 권한 RBAC와 수명 주기 정책 |
 
-![채널에서 들어온 요청을 Foundry hosted agent가 세션별 VM 격리 sandbox에서 처리하고, 모든 도구 호출과 외부 행동은 직접 구축하는 제어면의 정책·승인 서비스, 자격 증명 경계, egress 제어, 행동 감사 기록을 거쳐 Toolbox, Foundry 모델, Azure 리소스, 외부 SaaS에 도달한다. 하단에는 Application Insights, Microsoft Entra Agent ID, Microsoft Agent 365로 구성된 관측과 거버넌스 계층이 있다](../images/azure-frontier-agent-mapping.svg)
+![채널에서 들어온 요청을 Foundry hosted agent가 세션별 VM 격리 sandbox에서 처리하고, 모든 도구 호출과 외부 행동은 직접 구축하는 제어면의 정책·승인 서비스, 자격 증명 경계, egress 제어, 행동 감사 기록을 거쳐 Toolbox, Foundry 모델, Azure 리소스, 외부 SaaS, Browser Automation과 computer use 같은 화면 조작 도구에 도달한다. 하단에는 Application Insights, Microsoft Entra Agent ID, Microsoft Agent 365로 구성된 관측과 거버넌스 계층이 있다](../images/azure-frontier-agent-mapping.svg)
 
 *그림 1. 이 리서치가 제안하는 Azure 참조 구성. 파란색은 Microsoft Learn에서 확인한
 플랫폼 기능, 점선 주황색은 직접 설계해야 하는 영역이다.*
@@ -155,6 +163,51 @@ Hosted agent는 도구를 에이전트 정의에 직접 넣지 않고 Foundry �
 endpoint**로 연결한다. Toolbox에는 Code Interpreter, Web Search, Azure AI Search,
 OpenAPI, MCP, A2A, Skills 같은 Foundry 관리 도구가 포함되며, OAuth identity
 passthrough, agent identity, 키 기반 인증을 한곳에서 처리한다.
+
+### 화면 조작: Browser Automation과 computer use
+
+API가 없는 시스템을 다뤄야 할 때 Foundry는 두 가지 화면 조작 도구를 제공한다.
+둘 다 **preview**다. [computer use 문서][computer-use]의 비교를 기준으로 정리하면
+다음과 같다.
+
+| 항목 | [Browser Automation][browser-automation] | [computer use][computer-use] |
+|---|---|---|
+| 화면 인식 | HTML·XML 페이지를 DOM으로 해석 | 스크린샷의 원시 픽셀 |
+| 행동 방식 | 모델이 제시한 브라우저 동작 목록 | 가상 키보드와 마우스 |
+| 대상 | 브라우저 | 컴퓨터와 브라우저(데스크톱 앱 포함) |
+| 모델 | 모든 GPT 모델 | `computer-use-preview` 모델만, 별도 접근 신청 필요 |
+| 실행 환경 | Playwright Workspaces의 관리형 원격 브라우저(Playwright 리소스와 연결 필요) | 별도 리소스는 필요 없지만, 애플리케이션이 sandbox와 실행 루프를 직접 구성 |
+| 사람 개입 | Live View로 실시간 확인, Take control로 사람이 세션에 개입 | `pending_safety_checks`가 오면 최종 사용자 확인 후 `acknowledged_safety_checks`로 진행 |
+| 지역 | australiaeast, eastasia, eastus, japaneast, switzerlandnorth, westeurope, westus3 | eastus2, swedencentral, southindia |
+
+**Browser Automation**은 Foundry 에이전트가 Playwright Workspaces가 제공하는 관리형
+브라우저 세션에서 페이지를 탐색하고, 요소를 찾고, 입력하는 MCP 도구다. Toolbox에
+추가해 여러 에이전트에서 재사용할 수 있다. 문서는 Live View, 스크린샷 기록, 실행
+요약, trace를 확인·운영 검토 수단으로 제시한다. 동시에 **자격 증명 입력, 결제 같은 민감한 행동을
+요구하는 페이지는 피하고 신뢰하는 사이트에서만 쓰라**는 제한을 명시한다. 페이지
+변경과 JavaScript 비중이 큰 SPA에서 실패할 수 있다는 점도 적혀 있다.
+
+**computer use**는 모델이 행동을 제안할 뿐 기기를 직접 제어하지 않는다.
+애플리케이션이 요청받은 클릭·입력·스크롤을 실행하고, 갱신된 스크린샷을 다시 보내는
+루프(screenshot → action → screenshot)를 구현해야 한다. 서비스는 다음 상황에서
+`pending_safety_checks`를 반환한다.
+
+- 스크린샷에 모델의 행동을 바꾸려는 악성 지시가 있을 때(`malicious_instructions`)
+- 현재 도메인이 대화 맥락과 무관할 때(`irrelevant_domain`)
+- 민감한 도메인에 있을 때(`sensitive_domain`). 이때는 최종 사용자가 행동을 계속
+  지켜보는 “watch mode” 구현을 요구한다.
+
+문서는 민감한 데이터나 중요 리소스에 접근할 수 없는 VM에서만 쓰라고 경고한다.
+
+dots와 Muse의 설계와 비교하면 차이가 분명하다.
+
+- Muse는 브라우저 로그인 정보를 모델 밖 보안 저장소에서 주입하고 결제에 일회용
+  카드를 쓴다. 반면 Browser Automation 문서는 자격 증명·결제 페이지를 피하라고
+  안내한다. **로그인과 결제를 에이전트에 맡기는 기능은 Azure 도구만으로 채워지지
+  않는다.**
+- Muse의 사용자 조작 인계와 Browser Automation의 Take control은 같은 방향의 기능이다.
+- computer use의 safety check는 Muse의 분류기 층에 해당하지만, 진행 여부를 사용자에게
+  묻고 기록하는 흐름은 애플리케이션이 만든다.
 
 ### 신원: agent identity, Entra Agent ID, Agent 365
 
@@ -242,19 +295,38 @@ Muse는 분류기를 한 층으로만 보고, 분류기를 통과한 공격도 �
   목적지와 요청을 검사하는 egress 통제는 이 고객 네트워크 경로에 직접 구성하는 것을
   권고한다.
 
+### 화면 조작 경로의 선택과 통제
+
+화면 조작은 가장 강력하지만 가장 위험한 행동 수단이다. 다음을 권고한다.
+
+1. **API → 브라우저 자동화 → computer use 순서로 경로를 고른다.** 같은 작업을 API나
+   MCP 도구로 할 수 있으면 화면 조작을 쓰지 않는다. 브라우저 안의 작업이면 DOM을
+   해석하는 Browser Automation을, 데스크톱 앱이나 DOM을 쓸 수 없는 화면만 computer
+   use로 처리한다.
+2. **computer use의 safety check를 정책·승인 서비스의 입력으로 연결한다.**
+   `pending_safety_checks`를 받으면 자동으로 확인 처리하지 말고, 승인 UI로 사용자에게
+   행동과 사유를 보여 준 뒤 결과를 감사 기록에 남긴다.
+3. **화면 조작 sandbox는 업무 데이터와 분리한다.** computer use는 민감 데이터와 중요
+   리소스에 접근할 수 없는 VM에서 실행하고, 그 VM의 아웃바운드도 egress 제어를
+   거치게 한다.
+4. **로그인·결제 화면은 에이전트에 맡기지 않는다.** Azure 도구에는 dots·Muse식
+   비밀번호 주입이나 일회용 결제 수단이 없다. 이런 단계는 사람에게 넘기거나(Take
+   control), 별도 자격 증명 경계를 설계한 뒤에만 자동화한다.
+
 ## 권고: 단계별 도입 순서
 
 | 단계 | 목표 | 핵심 구성 | 넘어가는 조건 |
 |---|---|---|---|
 | 0. 읽기 전용 비서 | 선제 조사의 가치 검증 | hosted agent, 읽기 전용 Toolbox 도구, schedule routine, Application Insights | 사용자가 유용하다고 판단한 알림 비율과 오탐 비율을 측정 |
 | 1. 승인 기반 실행 | 쓰기 행동의 안전한 도입 | 정책·승인 서비스, 채널 승인 UI, Prompt Shields, 행동 감사 기록 | 승인 요청 대비 거부율, 승인 피로 지표, 차단 사유 분포 확인 |
-| 2. 기억과 개인화 | 반복 설명 제거 | Foundry memory(preview), 기억 열람·삭제 UI, reminder tool(preview) | 기억 품질 평가와 memory 오염 시나리오 적대적 테스트 통과 |
-| 3. 전담 에이전트 | 조직 업무를 맡는 specialist 에이전트 | agent identity별 최소 권한 RBAC, Entra Agent ID, egress 통제 | 업무 책임·도구·검토 방식을 업무 담당자와 문서로 합의 |
-| 4. 거버넌스 통합 | 조직 전체의 에이전트 관리 | Microsoft Agent 365 registry, Purview, Defender | 자체·외부 에이전트를 같은 registry에서 관찰 |
+| 2. API 없는 시스템 연결 | 레거시 포털·웹 업무 처리 | Browser Automation(preview), Take control, 필요 시 sandbox VM의 computer use(preview) | 화면 변경 시 실패율, safety check 발생 빈도와 사용자 확인 흐름 검증 |
+| 3. 기억과 개인화 | 반복 설명 제거 | Foundry memory(preview), 기억 열람·삭제 UI, reminder tool(preview) | 기억 품질 평가와 memory 오염 시나리오 적대적 테스트 통과 |
+| 4. 전담 에이전트 | 조직 업무를 맡는 specialist 에이전트 | agent identity별 최소 권한 RBAC, Entra Agent ID, egress 통제 | 업무 책임·도구·검토 방식을 업무 담당자와 문서로 합의 |
+| 5. 거버넌스 통합 | 조직 전체의 에이전트 관리 | Microsoft Agent 365 registry, Purview, Defender | 자체·외부 에이전트를 같은 registry에서 관찰 |
 
 각 단계는 이전 단계의 제어면을 유지한 채 권한을 넓힌다. 특히 1단계의 정책·승인
-서비스를 건너뛰고 2단계 이후 기능을 먼저 붙이면, 기억과 선제 실행이 합쳐져 위험이 가장
-큰 조합이 된다.
+서비스를 건너뛰고 화면 조작이나 기억 기능을 먼저 붙이면, 비신뢰 콘텐츠 노출과 선제
+실행이 합쳐져 위험이 가장 큰 조합이 된다.
 
 ## 도입 전 점검표
 
@@ -268,13 +340,21 @@ Muse는 분류기를 한 층으로만 보고, 분류기를 통과한 공격도 �
       적용했다.
 - [ ] 아웃바운드 트래픽이 고객 VNet 경로의 검사 지점을 통과한다.
 - [ ] 사용자가 활동 로그를 보고, 작업을 중단하고, 기억을 삭제할 수 있다.
-- [ ] preview 기능(memory, reminder tool, Spotlighting)의 사용 범위와 대체 방안을 정했다.
-- [ ] Routines를 쓸 프로젝트가 미지원 지역이나 CMK 요구 대상이 아닌지 확인했다.
+- [ ] 화면 조작은 API로 처리할 수 없는 작업에만 쓰며, computer use의 safety check는
+      자동 확인하지 않고 사용자 승인 흐름으로 보낸다.
+- [ ] computer use를 실행하는 VM에는 민감 데이터와 중요 리소스에 대한 접근이 없다.
+- [ ] preview 기능(memory, reminder tool, Spotlighting, Browser Automation, computer use)의
+      사용 범위와 대체 방안을 정했다.
+- [ ] Routines, Browser Automation, computer use를 쓸 프로젝트가 각 기능의 지원 지역에
+      있는지, Routines의 CMK 제한에 걸리지 않는지 확인했다.
 
 ## 한계
 
-- 브라우저를 직접 조작하는 computer use 기능, 결제 보호, 사용자 비밀번호 주입처럼
-  dots와 Muse가 제공하는 일부 기능은 이번 조사에서 Azure 대응 기능을 확인하지 않았다.
+- 사용자 비밀번호를 모델 밖에서 주입하는 기능과 결제 보호(일회용 카드 등)는 이번
+  조사에서 Azure 대응 기능을 확인하지 못했다. Browser Automation 문서는 오히려
+  자격 증명·결제 페이지를 피하라고 안내한다.
+- Browser Automation과 computer use는 문서 기준으로만 비교했고 실제 성공률, 지연,
+  비용은 측정하지 않았다.
 - Preview 기능은 동작과 제한이 바뀔 수 있다. 적용 전 해당 문서를 다시 확인해야 한다.
 - 정책·승인 서비스와 egress 검사의 구체적 구현(제품 선택, 성능, 비용)은 다루지 않았다.
   이는 후속 가이드나 실습에서 검증할 과제다.
@@ -290,6 +370,8 @@ Muse는 분류기를 한 층으로만 보고, 분류기를 통과한 공격도 �
 | [Memory in Microsoft Foundry Agent Service (preview)][memory] | 기억 유형, 관리 기능, 보안 위험, 한도와 제한 |
 | [Create and manage a toolbox in Foundry][toolbox] | `require_approval` 설정과 런타임 집행 책임 |
 | [Using function tools with human in the loop approvals][tool-approval] | Agent Framework의 승인 함수와 human-in-the-loop 흐름 |
+| [Use the computer use tool for agents (preview)][computer-use] | 실행 루프, safety check 유형과 처리, sandbox 권고, 지역, Browser Automation과의 비교 |
+| [Automate browser tasks with the Browser Automation tool (preview)][browser-automation] | Playwright Workspaces 기반 동작, Live View·Take control, 지역, 제한 |
 | [Prompt Shields in Microsoft Foundry][prompt-shields] | 공격 유형, 개입 지점, Spotlighting 제한 |
 | [What is the Microsoft agent identity platform][agent-id] | 신원 구성, 인증 방식, 외부 플랫폼 연동, Agent 365 요구 조건 |
 | [Overview of Microsoft Agent 365][agent-365] | observe, govern, secure 범위와 GA 시점 |
@@ -302,6 +384,8 @@ Muse는 분류기를 한 층으로만 보고, 분류기를 통과한 공격도 �
 [memory]: https://learn.microsoft.com/azure/foundry/agents/concepts/what-is-memory
 [toolbox]: https://learn.microsoft.com/azure/foundry/agents/how-to/tools/toolbox
 [tool-approval]: https://learn.microsoft.com/agent-framework/agents/tools/tool-approval
+[computer-use]: https://learn.microsoft.com/azure/foundry/agents/how-to/tools/computer-use
+[browser-automation]: https://learn.microsoft.com/azure/foundry/agents/how-to/tools/browser-automation
 [prompt-shields]: https://learn.microsoft.com/azure/foundry/openai/concepts/content-filter-prompt-shields
 [agent-id]: https://learn.microsoft.com/entra/agent-id/what-is-agent-id-platform
 [agent-365]: https://learn.microsoft.com/microsoft-agent-365/overview
