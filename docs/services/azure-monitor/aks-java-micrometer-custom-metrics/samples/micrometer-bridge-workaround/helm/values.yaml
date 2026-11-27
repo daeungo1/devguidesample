@@ -1,0 +1,18 @@
+replicaCount: 1
+
+image:
+  repository: ""
+  tag: ""
+  pullPolicy: IfNotPresent
+
+service:
+  name: orders-api
+
+monitoring:
+  javaAgentMode: managed
+  micrometerBridgeEnabled: false
+  javaAgentImage: ""
+  managedInstrumentationRef: application-insights
+  connectionStringSecret:
+    name: application-insights
+    key: connection-string

@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="260" viewBox="0 0 1040 260" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14">
+  <title>Human in the loop workflow</title>
+  <desc>Production traces are annotated, turned into a dataset, reviewed, and used to evaluate the agent. Improvements produce a new agent version and new traces. Trusted examples can be promoted to a golden dataset that is reused for evaluation.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#424242"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1040" height="260" fill="#FFFFFF"/>
+
+  <!-- Return path: new agent version -->
+  <path d="M945,70 V30 H95 V68" fill="none" stroke="#424242" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="520" y="22" text-anchor="middle" fill="#424242">New agent version</text>
+
+  <!-- Main steps -->
+  <g fill="#E8F1FB" stroke="#0F6CBD" stroke-width="1.5">
+    <rect x="20" y="70" width="150" height="50" rx="8"/>
+    <rect x="190" y="70" width="150" height="50" rx="8"/>
+    <rect x="360" y="70" width="150" height="50" rx="8"/>
+    <rect x="530" y="70" width="150" height="50" rx="8"/>
+    <rect x="700" y="70" width="150" height="50" rx="8"/>
+    <rect x="870" y="70" width="150" height="50" rx="8"/>
+  </g>
+  <g fill="#1B1B1B" text-anchor="middle">
+    <text x="95" y="100">Production traces</text>
+    <text x="265" y="100">Annotate traces</text>
+    <text x="435" y="100">Create dataset</text>
+    <text x="605" y="92">Review</text>
+    <text x="605" y="110">generated rows</text>
+    <text x="775" y="100">Evaluate agent</text>
+    <text x="945" y="100">Improve agent</text>
+  </g>
+  <g stroke="#424242" stroke-width="1.5" marker-end="url(#arrow)">
+    <line x1="170" y1="95" x2="188" y2="95"/>
+    <line x1="340" y1="95" x2="358" y2="95"/>
+    <line x1="510" y1="95" x2="528" y2="95"/>
+    <line x1="680" y1="95" x2="698" y2="95"/>
+    <line x1="850" y1="95" x2="868" y2="95"/>
+  </g>
+
+  <!-- Optional golden dataset path -->
+  <rect x="530" y="190" width="150" height="50" rx="8" fill="#FFF4CE" stroke="#8A6D00" stroke-width="1.5"/>
+  <text x="605" y="220" text-anchor="middle" fill="#1B1B1B">Golden dataset</text>
+  <g fill="none" stroke="#8A6D00" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrow)">
+    <path d="M605,120 V188"/>
+    <path d="M680,215 H775 V122"/>
+  </g>
+  <g fill="#8A6D00">
+    <text x="598" y="160" text-anchor="end">Promote trusted examples</text>
+    <text x="783" y="175">Reuse to compare versions</text>
+  </g>
+</svg>

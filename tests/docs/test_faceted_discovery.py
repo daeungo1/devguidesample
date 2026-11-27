@@ -54,6 +54,8 @@ REFINEMENTS = {
         "scenario-blob-permission": "secure operate identity ai-agents",
         "results": "evaluate diagnose ai-agents", "validation-results": "evaluate operate ai-agents",
         "incident-runbook": "diagnose operate ai-agents", "dynamic-thresholds": "operate design ai-agents",
+        "sql-server-vm-health-check": "operate diagnose networking ai-agents",
+        "sql-server-vm-grafana": "operate diagnose",
     },
     "azure-ai-search/custom-vectorization": {
         "index": "design build optimize", "rag-chunking": "design optimize evaluate",
@@ -228,7 +230,13 @@ def test_discovery_redirects_are_taxonomy_owned_and_search_excluded(taxonomy, ca
 
 def test_home_navigation_and_article_chips_use_explore(taxonomy, catalog):
     nav = yaml.safe_load((ROOT / "docs/.nav.yml").read_text())["nav"]
-    assert [next(iter(item)) for item in nav if "glob" not in item] == ["홈", "서비스별 보기", "글 찾기", "기여하기"]
+    assert [next(iter(item)) for item in nav if "glob" not in item] == [
+        "홈",
+        "Azure Daily Update",
+        "서비스별 보기",
+        "글 찾기",
+        "기여하기",
+    ]
     home = build_home_page((ROOT / "docs/index.md").read_text(), catalog.documents, taxonomy, catalog=catalog)
     assert f"{len(catalog.topics)}개 주제 · {len(catalog.documents)}개 문서" in home
     assert "전체 글" not in home and "태그별 보기" not in home
@@ -244,6 +252,7 @@ def test_home_navigation_and_article_chips_use_explore(taxonomy, catalog):
 def test_explore_assets_are_configured_and_accessible():
     config = yaml.safe_load((ROOT / "mkdocs.yml").read_text())
     assert "assets/javascripts/explore.js" in config.get("extra_javascript", [])
+    assert "assets/javascripts/search-input.js" in config.get("extra_javascript", [])
     css = (ROOT / "docs/assets/stylesheets/extra.css").read_text()
     for selector in (".dg-explore", ".dg-explore-filters", ".dg-explore-member", ".dg-explore-topic", ".dg-filter-option"):
         assert selector in css
@@ -261,7 +270,10 @@ def test_service_discovery_reports_topics_and_documents(taxonomy, catalog):
         assert "개 주제 · " in pages[PurePosixPath(path)]
 
 
-@pytest.mark.parametrize("script_name", ("explore.test.cjs", "sidebar-toggle.test.cjs"))
+@pytest.mark.parametrize(
+    "script_name",
+    ("explore.test.cjs", "sidebar-toggle.test.cjs", "daily-updates.test.cjs", "search-input.test.cjs"),
+)
 def test_javascript_behavior_with_available_node(script_name):
     node = shutil.which("node")
     if not node:

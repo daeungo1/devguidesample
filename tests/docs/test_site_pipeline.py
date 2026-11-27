@@ -5,6 +5,9 @@ from datetime import date
 from html.parser import HTMLParser
 import json
 from pathlib import Path, PurePosixPath
+import re
+import shutil
+import subprocess
 from types import SimpleNamespace
 from urllib.parse import urljoin
 
@@ -255,6 +258,169 @@ def make_topic_repository(tmp_path: Path) -> Path:
     )
     (sample_dir / "README.md").write_text("# Event lab\n", encoding="utf-8")
     return root
+
+
+def test_feature_report_builds_without_counts_and_publishes_diagrams(
+    tmp_path: Path,
+) -> None:
+    root = make_topic_repository(tmp_path)
+    report = root / "docs" / "azure-daily-update" / "2026-10-08"
+    images = report / "images"
+    images.mkdir(parents=True)
+    diagram = '<svg xmlns="http://www.w3.org/2000/svg"><text>Operator</text></svg>'
+    (images / "architecture.svg").write_text(diagram, encoding="utf-8")
+    (report / "index.md").write_text(
+        "---\n"
+        "title: Azure Daily Update — 2026-10-08\n"
+        "description: Anyscale on Azure GA의 실행 구조\n"
+        "report_date: 2026-10-08\n"
+        "generated_at: 2026-10-09T09:00:00+09:00\n"
+        "---\n\n"
+        "# Azure Daily Update — 2026-10-08\n\n"
+        "Anyscale on Azure GA.\n\n"
+        "## 주요 업데이트\n\n"
+        "![Operator 실행 구조](images/architecture.svg)\n",
+        encoding="utf-8",
+    )
+
+    build(load_config(str(root / "mkdocs.yml"), strict=True))
+
+    site_report = root / "site" / "azure-daily-update" / "2026-10-08"
+    assert (site_report / "images" / "architecture.svg").read_text(
+        encoding="utf-8"
+    ) == diagram
+    assert 'src="images/architecture.svg"' in (
+        site_report / "index.html"
+    ).read_text(encoding="utf-8")
+    landing = (root / "site" / "azure-daily-update" / "index.html").read_text(
+        encoding="utf-8"
+    )
+    assert "Anyscale on Azure GA의 실행 구조" in landing
+    assert "dg-daily-counts" not in landing
+
+
+def test_daily_update_archive_builds_landing_and_dated_page(tmp_path: Path) -> None:
+    root = make_topic_repository(tmp_path)
+    docs = root / "docs"
+    (docs / ".nav.yml").write_text(
+        "nav:\n"
+        "  - Home: index.md\n"
+        "  - Azure Daily Update: azure-daily-update\n"
+        "  - Services: services\n"
+        "  - 글 찾기: explore\n"
+        "  - glob: '*'\n"
+        "    ignore_no_matches: true\n",
+        encoding="utf-8",
+    )
+    report_dates = ("2025-12-31", "2026-09-01", "2026-10-05", "2026-10-06", "2026-10-07")
+    for report_date in report_dates:
+        archive = docs / "azure-daily-update" / report_date / "index.md"
+        archive.parent.mkdir(parents=True)
+        archive.write_text(
+            f"""\
+---
+title: Azure Daily Update — {report_date}
+description: {report_date} Azure 업데이트 요약
+report_date: {report_date}
+generated_at: 2026-10-08T09:00:00+09:00
+---
+
+# Azure Daily Update — {report_date}
+
+- **AI & Apps:** 1건
+- **Infra:** 0건 — 업데이트 없음
+- **Database:** 1건
+- **총계:** 2건
+- **핵심 한 줄:** {report_date}의 AKS와 Azure SQL 변경 요약
+
+## AI & Apps
+
+업데이트 없음
+""",
+            encoding="utf-8",
+        )
+    draft = docs / "azure-daily-update" / "draft" / "index.md"
+    draft.parent.mkdir(parents=True)
+    draft.write_text("# Unpublished draft\n", encoding="utf-8")
+
+    build(load_config(str(root / "mkdocs.yml"), strict=True))
+
+    landing = (root / "site" / "azure-daily-update" / "index.html").read_text(
+        encoding="utf-8"
+    )
+    dated = (
+        root / "site" / "azure-daily-update" / "2026-10-07" / "index.html"
+    ).read_text(encoding="utf-8")
+    assert "2026-10-07" in landing
+    assert "2026-10-07/" in landing
+    assert "업데이트 없음" in dated
+    assert landing.count("data-daily-recent=") == 3
+    assert 'data-daily-selected="2026-10-07"' in dated
+    assert 'data-daily-source="../../assets/daily-updates-calendar.json"' in dated
+    assert 'data-daily-source="../../assets/daily-updates.json"' not in dated
+    assert landing.count("data-daily-calendar=") == 1
+    assert (
+        landing.count(
+            'data-daily-source="../assets/daily-updates-calendar.json"'
+        )
+        == 1
+    )
+    assert "전체 달력 · 검색" not in landing
+    assert dated.count("data-daily-calendar=") == 1
+    assert (
+        dated.count(
+            'data-daily-source="../../assets/daily-updates-calendar.json"'
+        )
+        == 1
+    )
+    assert "전체 달력 · 검색" in dated
+    assert landing.count('data-daily-source="../assets/daily-updates.json"') == 1
+    assert "assets/javascripts/daily-updates.js" in dated
+    for report_date in ("2026-10-07", "2025-12-31"):
+        reader = TopicReaderPage(
+            root / "site" / "azure-daily-update" / report_date / "index.html"
+        )
+        calendar_links = [
+            (target, title)
+            for target, title, _ in reader.navigation_entries
+            if any(
+                day in urljoin(
+                    f"https://example.test/devguidesample/azure-daily-update/{report_date}/",
+                    target,
+                )
+                for day in report_dates
+            )
+        ]
+        expected_days = ["5", "6", "7"] if report_date == "2026-10-07" else ["31"]
+        assert [title for _, title in calendar_links] == expected_days
+    home = (root / "site" / "index.html").read_text(encoding="utf-8")
+    assert "data-daily-calendar=" not in home
+    assert "Azure Daily Update" in home
+    data = json.loads(
+        (root / "site" / "assets" / "daily-updates.json").read_text(encoding="utf-8")
+    )
+    assert [report["date"] for report in data["reports"]] == sorted(report_dates, reverse=True)
+    assert all("업데이트 없음" in report["text"] for report in data["reports"])
+    calendar_data = json.loads(
+        (root / "site" / "assets" / "daily-updates-calendar.json").read_text(encoding="utf-8")
+    )
+    assert [report["date"] for report in calendar_data["reports"]] == sorted(report_dates, reverse=True)
+    assert all(set(report) == {"date", "title", "url"} for report in calendar_data["reports"])
+    assert not (root / "site" / "azure-daily-update" / "draft").exists()
+    search = json.loads(
+        (root / "site" / "search" / "search_index.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert all(
+        entry["location"] != "azure-daily-update/draft/"
+        for entry in search["docs"]
+    )
+    for report_date in report_dates:
+        assert any(
+            entry["location"] == f"azure-daily-update/{report_date}/"
+            for entry in search["docs"]
+        )
 
 
 def test_indexes_are_generated_from_metadata_with_safe_yaml() -> None:
@@ -554,8 +720,16 @@ def test_topic_catalog_integration_preserves_public_path_filter(tmp_path: Path) 
     assert "AKS 네트워크 진단" not in pages[PurePosixPath("articles/index.md")]
 
 
+@pytest.mark.parametrize(
+    ("redirect", "target"),
+    [
+        ("guides/aks/old-topic/index.md", "../../../services/aks/network-diagnosis/"),
+        ("services/aks/old-topic/index.md", "../network-diagnosis/"),
+        ("services/aks/old-topic/old-child/index.md", "../../network-diagnosis/"),
+    ],
+)
 def test_on_post_page_injects_head_redirect_tags_when_theme_canonical_is_missing(
-    tmp_path: Path,
+    tmp_path: Path, redirect: str, target: str,
 ) -> None:
     docs = tmp_path / "docs"
     docs.mkdir()
@@ -577,16 +751,95 @@ def test_on_post_page_injects_head_redirect_tags_when_theme_canonical_is_missing
     (canonical / "index.md").write_text(
         SEARCH_DOCUMENT.replace(
             "last_verified: 2026-09-12",
-            "redirect_from: [guides/aks/old-topic/index.md]\nlast_verified: 2026-09-12",
+            f"redirect_from: [{redirect}]\nlast_verified: 2026-09-12",
         ),
         encoding="utf-8",
     )
-    page = SimpleNamespace(file=SimpleNamespace(src_uri="guides/aks/old-topic/index.md"))
+    page = SimpleNamespace(file=SimpleNamespace(src_uri=redirect))
 
     rendered = on_post_page("<html><head></head><body></body></html>", page, {"docs_dir": str(docs)})
 
-    assert '<link rel="canonical" href="../../../services/aks/network-diagnosis/">' in rendered
-    assert '<meta http-equiv="refresh" content="0; url=../../../services/aks/network-diagnosis/">' in rendered
+    assert f'<link rel="canonical" href="{target}">' in rendered
+    assert f'<meta http-equiv="refresh" content="0; url={target}">' in rendered
+
+    script = re.search(r'<script id="dg-document-redirect">(.*?)</script>', rendered, re.DOTALL)
+    assert script is not None
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("Node is unavailable")
+    result = subprocess.run(
+        [
+            node, "-e",
+            "const vm = require('node:vm');"
+            "const location = {search: '?text=redis', hash: '#nodejs',"
+            "replace: target => process.stdout.write(target)};"
+            f"vm.runInNewContext({json.dumps(script.group(1))}, {{location}});",
+        ],
+        capture_output=True, text=True, check=True,
+    )
+    assert result.stdout == target + "?text=redis#nodejs"
+
+
+def test_on_post_page_advertises_daily_update_feed() -> None:
+    page = SimpleNamespace(
+        file=SimpleNamespace(src_uri="azure-daily-update/2026-10-08/index.md")
+    )
+
+    rendered = on_post_page(
+        "<html><head></head><body></body></html>",
+        page,
+        {
+            "docs_dir": "docs",
+            "site_url": "https://example.test/devguidesample/",
+        },
+    )
+
+    assert (
+        '<link rel="alternate" type="application/rss+xml" '
+        'title="Azure Daily Update" '
+        'href="https://example.test/devguidesample/azure-daily-update/feed.xml">'
+    ) in rendered
+
+
+def test_daily_update_body_text_does_not_suppress_feed_discovery() -> None:
+    page = SimpleNamespace(
+        file=SimpleNamespace(src_uri="azure-daily-update/2026-10-08/index.md")
+    )
+
+    rendered = on_post_page(
+        "<html><head></head><body><p>application/rss+xml</p></body></html>",
+        page,
+        {
+            "docs_dir": "docs",
+            "site_url": "https://example.test/devguidesample/",
+        },
+    )
+
+    head = rendered.split("<head>", 1)[1].split("</head>", 1)[0]
+    assert 'rel="alternate" type="application/rss+xml"' in head
+
+
+@pytest.mark.parametrize(
+    ("src_uri", "expected_href"),
+    [
+        ("azure-daily-update/index.md", "feed.xml"),
+        ("azure-daily-update/2026-10-08/index.md", "../feed.xml"),
+    ],
+)
+def test_daily_update_feed_discovery_uses_relative_url_when_site_url_is_missing(
+    src_uri: str,
+    expected_href: str,
+) -> None:
+    page = SimpleNamespace(file=SimpleNamespace(src_uri=src_uri))
+
+    rendered = on_post_page(
+        "<html><head></head><body></body></html>",
+        page,
+        {"docs_dir": "docs", "site_url": None},
+    )
+
+    assert 'type="application/rss+xml"' in rendered
+    assert f'href="{expected_href}"' in rendered
 
 
 def make_search_repository(tmp_path: Path) -> Path:
