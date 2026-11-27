@@ -1,10 +1,15 @@
-"""Call Microsoft Foundry once using only a user-assigned managed identity."""
+"""Call Microsoft Foundry once with a user-assigned identity through ACI or AKS."""
 
+import argparse
 import os
 import sys
 
 from azure.core.exceptions import ClientAuthenticationError
-from azure.identity import ManagedIdentityCredential, get_bearer_token_provider
+from azure.identity import (
+    ManagedIdentityCredential,
+    WorkloadIdentityCredential,
+    get_bearer_token_provider,
+)
 from openai import APIConnectionError, APIStatusError, OpenAI
 
 SCOPE = "https://ai.azure.com/.default"
@@ -12,16 +17,30 @@ SCOPE = "https://ai.azure.com/.default"
 
 def main() -> int:
     """Return a failing exit code unless the model completed with text."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--workload-identity", action="store_true", help="Use the AKS projected service account token.")
+    use_workload_identity = parser.parse_args().workload_identity
+    auth = "workload_identity" if use_workload_identity else "managed_identity"
+
     try:
         endpoint = os.environ["FOUNDRY_ENDPOINT"].rstrip("/")
         deployment = os.environ["FOUNDRY_MODEL_DEPLOYMENT"]
         client_id = os.environ["AZURE_CLIENT_ID"]
+        credential = (
+            WorkloadIdentityCredential(
+                client_id=client_id,
+                tenant_id=os.environ["AZURE_TENANT_ID"],
+                token_file_path=os.environ["AZURE_FEDERATED_TOKEN_FILE"],
+            )
+            if use_workload_identity
+            else ManagedIdentityCredential(client_id=client_id)
+        )
     except KeyError as error:
         print(f"Missing environment variable: {error.args[0]}", file=sys.stderr)
         return 2
 
     try:
-        with ManagedIdentityCredential(client_id=client_id) as credential:
+        with credential:
             token_provider = get_bearer_token_provider(credential, SCOPE)
             with OpenAI(
                 base_url=f"{endpoint}/openai/v1/",
@@ -37,7 +56,7 @@ def main() -> int:
                 )
                 response = raw.parse()
     except ClientAuthenticationError:
-        print("Managed identity could not obtain an access token.", file=sys.stderr)
+        print(f"Could not obtain a Foundry access token with {auth}.", file=sys.stderr)
         return 1
     except APIConnectionError:
         print("Could not connect to the Foundry endpoint.", file=sys.stderr)
@@ -50,7 +69,7 @@ def main() -> int:
         print(f"No completed text response (HTTP {raw.status_code}, status={response.status}).", file=sys.stderr)
         return 1
 
-    print("OK auth=managed_identity http=200 response=completed")
+    print(f"OK auth={auth} http=200 response=completed")
     return 0
 
 

@@ -18,6 +18,8 @@ official_sources:
     url: https://learn.microsoft.com/azure/ai-services/multi-service-resource
   - title: What is managed identities for Azure resources?
     url: https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview
+  - title: Use Microsoft Entra Workload ID with Azure Kubernetes Service (AKS)
+    url: https://learn.microsoft.com/azure/aks/workload-identity-overview
   - title: identity Package
     url: https://learn.microsoft.com/python/api/azure-identity/azure.identity
   - title: Configure keyless authentication with Microsoft Entra ID
@@ -71,6 +73,8 @@ client = OpenAI(base_url=f"{foundry_endpoint}/openai/v1/", api_key=token_provide
 여기서 `api_key`에 넘기는 것은 **키나 토큰 문자열이 아니라 함수**입니다. 모델을 호출할 때 OpenAI SDK가 이 함수를 호출해 유효한 토큰을 얻고 `Authorization: Bearer <token>`을 보냅니다. Azure Identity가 토큰 캐시와 갱신을 처리합니다. Foundry는 토큰으로 **누가 요청했는지**를 확인하고, 이 ID에 모델 호출 역할이 있는지는 **Azure RBAC**로 확인합니다.
 
 앱 설정에 남는 값은 Foundry 엔드포인트, 모델 배포 이름, 관리 ID의 `clientId`입니다. `clientId`만 복사한 다른 호스트에서는 그 ID로 토큰을 받을 수 없습니다. Azure에서 해당 관리 ID를 실제 실행 호스트에 연결해야 합니다.
+
+**AKS에서 실행한다면** [AKS Workload Identity로 Foundry 키리스 호출](aks-workload-identity/index.md)을 따르세요. Pod는 노드의 관리 ID를 빌려 쓰지 않고, Kubernetes 서비스 계정 토큰을 애플리케이션 전용 관리 ID의 Entra 토큰으로 교환합니다.
 
 ## 인증 체인 { #auth-flow }
 
