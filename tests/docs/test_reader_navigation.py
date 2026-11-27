@@ -3,6 +3,7 @@ from __future__ import annotations
 from html.parser import HTMLParser
 import json
 from pathlib import Path, PurePosixPath
+import re
 from types import SimpleNamespace
 from urllib.parse import urljoin
 
@@ -197,6 +198,35 @@ def targets(markdown: str) -> list[str]:
     parser = Links()
     parser.feed(renderer.convert(body))
     return parser.targets
+
+
+@pytest.mark.parametrize(("fragment", "level"), [("content-first-headings", 2), ("topic-entry-message", 3)])
+@pytest.mark.parametrize("mkdocs_mode", [False, True], ids=["plain-markdown", "mkdocs"])
+def test_heading_guidance_anchor_works_without_mkdocs_attributes(
+    mkdocs_mode: bool, fragment: str, level: int
+) -> None:
+    root = Path(__file__).parents[2]
+    source = (root / "docs/contributing/index.md").read_text(encoding="utf-8")
+    body = source.split("---", 2)[2]
+    named_anchor = f'<a name="{fragment}"></a>'
+    if mkdocs_mode:
+        config = load_config(config_file=str(root / "mkdocs.yml"))
+        renderer = Markdown(
+            extensions=config.markdown_extensions, extension_configs=config.mdx_configs
+        )
+    else:
+        renderer = Markdown()
+
+    rendered = renderer.convert(body)
+
+    assert rendered.count(named_anchor) == 1
+    assert re.search(
+        re.escape(named_anchor) + rf"\s*\n{'#' * level} [^\n]+\{{ #{fragment} \}}",
+        body,
+    )
+    if mkdocs_mode:
+        assert re.search(rf'<h{level} id="{fragment}">', rendered)
+        assert rendered.count(f'id="{fragment}"') == 1
 
 
 @pytest.mark.parametrize("path", ["services/azure-monitor/index.md", "services/azure-storage/index.md"])
@@ -404,6 +434,10 @@ def test_topic_pages_render_context_outline_and_related_samples(
     assert 'class="dg-sample-card"' in setup_rendered
     assert "Event lab" in setup_rendered
     assert (
+        '<h3><a href="https://github.com/example/devguidesample/tree/main/'
+        "docs/services/azure-monitor/new-topic/samples/event-lab\">Event lab</a></h3>"
+    ) in setup_rendered
+    assert (
         "https://github.com/example/devguidesample/tree/main/"
         "docs/services/azure-monitor/new-topic/samples/event-lab"
     ) in setup_rendered
@@ -416,6 +450,45 @@ def test_topic_pages_render_context_outline_and_related_samples(
     assert 'class="dg-sample-card"' not in results_rendered
     assert 'class="dg-sample-card"' not in standalone_rendered
 
+
+
+def test_external_sample_card_links_the_pinned_project(tmp_path: Path, taxonomy: dict) -> None:
+    docs_dir, _ = build_topic_fixture(tmp_path, taxonomy)
+    sample_dir = docs_dir / "services" / "azure-monitor" / "standalone-topic" / "samples" / "app"
+    sample_dir.mkdir(parents=True)
+    (sample_dir / "sample.yml").write_text(
+        yaml.safe_dump(
+            {
+                "title": "MovieLog app",
+                "description": "Application code in its own repository.",
+                "kind": "external",
+                "repository": "https://github.com/example-org/movielog",
+                "ref": "v2.6.4",
+                "commit": "c" * 40,
+                "image": "ghcr.io/example-org/movielog:2.6.4@sha256:" + "a" * 64,
+                "used_by": ["index"],
+            }
+        ),
+        encoding="utf-8",
+    )
+    standalone = next(
+        document
+        for document in build_topic_catalog(docs_dir, taxonomy).documents
+        if document.relative_path == PurePosixPath("services/azure-monitor/standalone-topic/index.md")
+    )
+
+    rendered = on_page_markdown(
+        "# Standalone topic\n\n본문입니다.\n",
+        page_namespace(standalone),
+        {"docs_dir": str(docs_dir), "repo_url": "https://github.com/example/devguidesample"},
+        None,
+    )
+
+    assert '<h3><a href="https://github.com/example-org/movielog/tree/' + "c" * 40 + '">MovieLog app</a></h3>' in rendered
+    assert "external · v2.6.4" in rendered
+    assert '<a href="https://github.com/example-org/movielog/releases/tag/v2.6.4">릴리스</a>' in rendered
+    assert "<code>ghcr.io/example-org/movielog:2.6.4@sha256:" + "a" * 64 + "</code>" in rendered
+    assert "devguidesample/tree/main" not in rendered
 
 class ReaderPage(HTMLParser):
     def __init__(self, path: Path) -> None:
@@ -547,7 +620,14 @@ def test_each_new_bundle_updates_all_reader_destinations(
     build(load_config(str(settings_path), strict=True))
     home = ReaderPage(tmp_path / "site/index.html")
 
-    assert list(home.root_links.values()) == ["홈", "서비스별 보기", "글 찾기", "기여하기"]
+    assert list(home.root_links.values()) == [
+        "홈",
+        "Azure Daily Update",
+        "서비스별 보기",
+        "글 찾기",
+        "기여하기",
+    ]
+    assert home.navigation_links["azure-daily-update/"] == "Azure Daily Update"
     assert home.navigation_links["services/azure-monitor/"] == "Azure Monitor"
     assert home.navigation_links["services/azure-monitor/setup/"] == "B 구성 절차"
     assert home.expanded_groups == 0

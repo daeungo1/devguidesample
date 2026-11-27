@@ -36,11 +36,16 @@ services:
   azure-container-apps: Azure Container Apps
   azure-cosmos-db: Azure Cosmos DB
   azure-database-for-mysql: Azure Database for MySQL
+  azure-documentdb: Azure DocumentDB
+  azure-event-hubs: Azure Event Hubs
   azure-functions: Azure Functions
   azure-front-door: Azure Front Door
   azure-hdinsight: Azure HDInsight
+  azure-horizondb: Azure HorizonDB
   azure-kubernetes-service: Azure Kubernetes Service
   azure-load-testing: Azure Load Testing
+  azure-managed-grafana: Azure Managed Grafana
+  azure-managed-lustre: Azure Managed Lustre
   azure-managed-redis: Azure Managed Redis
   azure-monitor: Azure Monitor
   azure-openai: Azure OpenAI
@@ -49,6 +54,7 @@ services:
   microsoft-foundry: Microsoft Foundry
 
 technologies:
+  airflow: Apache Airflow
   azure-cli: Azure CLI
   bicep: Bicep
   computer-use: Computer use agents
@@ -60,17 +66,26 @@ technologies:
   grafana: Grafana
   java: Java
   kafka: Apache Kafka
+  karpenter: Karpenter
+  keda: KEDA
   kubernetes: Kubernetes
+  lustre: Lustre
   mcp: Model Context Protocol
+  micrometer: Micrometer
+  mongodb: MongoDB
   mysql: MySQL
   nodejs: Node.js
   open-telemetry: OpenTelemetry
+  postgresql: PostgreSQL
   powershell: PowerShell
   prometheus: Prometheus
   python: Python
   rag: Retrieval-augmented generation
   redis: Redis
   rest-api: REST API
+  spring-boot: Spring Boot
+  sql-server: SQL Server
+  victoriametrics: VictoriaMetrics
 
 tags:
   design: 설계
@@ -122,6 +137,7 @@ verification_statuses: [verified, needs-review]
 required_source_host: learn.microsoft.com
 official_source_hosts:
   - learn.microsoft.com
+  - azure.microsoft.com
   - www.copilotkit.ai
   - docs.copilotkit.ai
   - docs.ag-ui.com
@@ -134,7 +150,12 @@ official_source_hosts:
   - introducing.muse.ai
   - research.meta.ai
   - openjdk.org
+  - docs.micrometer.io
+  - code.visualstudio.com
+  - docs.github.com
   - kubernetes.io
+  - karpenter.sh
+  - keda.sh
   - www.cncf.io
   - cncf.io
   - github.com
@@ -142,3 +163,7 @@ official_source_hosts:
   - py.sdk.modelcontextprotocol.io
   - prices.azure.com
   - www.rfc-editor.org
+  - www.lustre.org
+  - wiki.lustre.org
+  - doc.lustre.org
+  - docs.victoriametrics.com

@@ -18,6 +18,11 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from scripts.docs.content import Document, DocumentFormatError, load_taxonomy
+from scripts.docs.daily_updates import (
+    build_daily_update_data,
+    build_daily_update_feed,
+    build_daily_update_index,
+)
 from scripts.docs.explore import build_explore_page, build_filter_redirect_pages, count_label, topic_groups
 from scripts.docs.topics import (
     LEGACY_COLLECTIONS,
@@ -567,6 +572,8 @@ def build_index_pages(
     if catalog is not None:
         by_path = {document.relative_path: document for document in docs}
         for redirect_path, canonical_path in sorted(catalog.redirects.items()):
+            if redirect_path.parts[0] not in LEGACY_COLLECTIONS:
+                continue
             document = by_path.get(canonical_path)
             if document is not None:
                 service_path = redirect_path.parent.parent / "index.md"
@@ -810,6 +817,22 @@ def write_generated_pages(repo_root: Path | None = None) -> None:
     for path, content in build_redirect_pages(catalog).items():
         with mkdocs_gen_files.open(path.as_posix(), "w") as generated:
             generated.write(content)
+
+    daily_update_index = build_daily_update_index(root / "docs")
+    with mkdocs_gen_files.open("azure-daily-update/index.md", "w") as generated:
+        generated.write(daily_update_index)
+    with mkdocs_gen_files.open("assets/daily-updates.json", "w") as generated:
+        generated.write(build_daily_update_data(root / "docs"))
+    with mkdocs_gen_files.open("assets/daily-updates-calendar.json", "w") as generated:
+        generated.write(build_daily_update_data(root / "docs", include_search=False))
+    with mkdocs_gen_files.open("azure-daily-update/feed.xml", "w") as generated:
+        generated.write(
+            build_daily_update_feed(
+                root / "docs",
+                site_url=str(mkdocs_gen_files.config.get("site_url", "")),
+                guid_base_url=(mkdocs_gen_files.config.get("extra") or {}).get("feed_guid_base_url"),
+            )
+        )
 
     template = (root / "docs" / "index.md").read_text(encoding="utf-8")
     home_page = build_home_page(template, documents, taxonomy, catalog=catalog)

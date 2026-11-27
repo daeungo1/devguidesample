@@ -1,0 +1,133 @@
+# MovieLog on AKS: Micrometer → Application Insights → Grafana
+
+영화 리뷰 앱 MovieLog(Spring Boot 4.1.2, Java 25)의 `movielog.*` Micrometer
+지표를 AKS autoinstrumentation으로 `customMetrics`에 보내고, GitHub Copilot이 skill
+지침에 따라 실제 데이터를 조회해 Grafana 대시보드를 만들고 검증하는 실습 sample입니다.
+
+## 구성
+
+| 경로 | 용도 |
+|---|---|
+| `src/main/java/.../metrics/` | 도메인 이벤트를 `movielog.*` Counter·DistributionSummary·Gauge로 기록합니다. |
+| `src/main/resources/application-aks.properties` | PostgreSQL 연결, seed, Actuator `health`만 노출, `movielog` allowlist입니다. |
+| `src/main/resources/db/aks-seed.sql` | TMDB API key 없이 영화 상세가 동작하도록 영화 12편을 넣습니다. |
+| `Dockerfile` | jlink + distroless 실행 image입니다. ACR Tasks용 layer marker를 포함합니다. |
+| `agent-init/Dockerfile` | checksum을 고정한 Application Insights Java 3.7.10 init image입니다. |
+| `k8s/00-postgres.yaml` | 실습용 PostgreSQL입니다. 데이터는 `emptyDir`라 container 재시작에는 유지되고 Pod가 삭제·교체되면 사라집니다. 두 Pod가 겹치지 않게 `Recreate`로 교체합니다. |
+| `k8s/10-instrumentation.yaml` | per-deployment `Instrumentation` CR입니다. |
+| `k8s/20-movielog.yaml` | `inject-java` annotation을 단 앱 Deployment와 Service입니다. |
+| `k8s/21-agent-3.7.10.patch.yaml` | managed agent가 3.7.9 미만일 때 쓰는 3.7.10 init image patch입니다. |
+| `k8s/30-loadgen.yaml`, `loadgen/loadgen.py` | 가입·조회·리뷰·댓글을 반복하는 합성 사용자 6개입니다. |
+| `.github/skills/grafana-metrics-dashboard/SKILL.md` | GitHub Copilot이 customMetrics 조회 → 집계식 결정 → dashboard 생성 → query 실행 → 화면 확인 순서로 작업하게 하는 skill입니다. |
+| `.github/skills/grafana-metrics-dashboard/scripts/verify_panels.py` | 모든 panel query를 Grafana `/api/ds/query`로 실행해 오류와 빈 panel을 찾습니다. |
+| `.github/skills/grafana-metrics-dashboard/scripts/capture.mjs` | Entra access token으로 Managed Grafana 화면을 headless 캡처합니다. |
+| `.vscode/mcp.json` | VS Code에서 Managed Grafana MCP endpoint를 연결하는 설정 예시입니다. |
+| `grafana/movielog-dashboard.json` | 실습에서 만든 MovieLog dashboard입니다. resource ID 변수 값이 비어 있어 import용으로 씁니다. |
+
+## 로컬 test
+
+```bash
+./gradlew test
+```
+
+JDK 25가 필요합니다.
+
+## 배포
+
+상위 문서의 순서를 따릅니다. 핵심 명령은 다음과 같습니다.
+
+```bash
+RG="<resource-group>"; ACR="<acr-name>"; AI="<app-insights-name>"; GRAFANA="<grafana-name>"
+ACR_SERVER="$(az acr show -n "$ACR" --query loginServer -o tsv)"
+
+az acr build -r "$ACR" -t movielog:1.0.0 --platform linux/amd64 .
+az acr build -r "$ACR" -t observability/applicationinsights-agent:3.7.10 \
+  --platform linux/amd64 agent-init
+
+kubectl apply -f k8s/00-postgres.yaml
+kubectl create secret generic movielog-db -n movielog \
+  --from-literal=username=movielog --from-literal=password="$(openssl rand -base64 24)"
+
+export APPLICATIONINSIGHTS_CONNECTION_STRING="$(az monitor app-insights component show \
+  -g "$RG" -a "$AI" --query connectionString -o tsv)"
+export APP_IMAGE="$ACR_SERVER/movielog:1.0.0"
+envsubst < k8s/10-instrumentation.yaml | kubectl apply -f -
+envsubst < k8s/20-movielog.yaml | kubectl apply -f -
+kubectl rollout status deploy/movielog -n movielog
+kubectl scale deploy/movielog -n movielog --replicas=2
+
+kubectl create configmap loadgen -n movielog --from-file=loadgen/loadgen.py
+kubectl apply -f k8s/30-loadgen.yaml
+```
+
+주입된 agent가 3.7.9 미만이면(`kubectl get pod ... -o jsonpath='{.spec.initContainers[*].image}'`)
+두 단계로 3.7.10 init image로 바꿉니다. 한 번에 patch하면 webhook이 agent 환경
+변수를 지웁니다.
+
+```bash
+export AGENT_IMAGE="$ACR_SERVER/observability/applicationinsights-agent@$(az acr repository show \
+  -n "$ACR" --image observability/applicationinsights-agent:3.7.10 --query digest -o tsv)"
+kubectl create secret generic appinsights -n movielog \
+  --from-literal=connection-string="$APPLICATIONINSIGHTS_CONNECTION_STRING"
+kubectl patch deployment movielog -n movielog --type merge -p \
+  '{"spec":{"template":{"metadata":{"annotations":{"instrumentation.opentelemetry.io/inject-java":"false"}}}}}'
+kubectl rollout status deploy/movielog -n movielog
+envsubst < k8s/21-agent-3.7.10.patch.yaml > /tmp/agent-patch.yaml
+kubectl patch deployment movielog -n movielog --type strategic --patch-file /tmp/agent-patch.yaml
+kubectl rollout status deploy/movielog -n movielog
+kubectl logs -n movielog -l app=movielog -c movielog --tail=-1 --prefix | grep "Agent .* started"
+```
+
+처음 배포는 replica 1개로 시작합니다. `ddl-auto=update`가 schema를 만들 때 두
+Pod가 동시에 같은 table을 만들려고 경쟁하지 않게 하기 위해서입니다.
+
+## GitHub Copilot skill로 대시보드 만들기
+
+skill은 VS Code의 GitHub Copilot과 GitHub Copilot CLI가 `.github/skills/`에서 찾습니다.
+이 폴더를 workspace로 열거나 skill 폴더를 자기 저장소의 `.github/skills/`에 복사한 뒤,
+요청합니다. VS Code chat에서는 `/grafana-metrics-dashboard <요청>` slash command로,
+Copilot CLI에서는 "Use the /grafana-metrics-dashboard skill. <요청>"처럼 prompt 안에 skill
+이름을 넣어 지정합니다. 요청이 skill 설명과 맞으면 이름 없이도 불러올 수 있습니다.
+Managed Grafana MCP를 쓰려면 `.vscode/mcp.json`의 `<grafana-endpoint>`를 바꿉니다.
+
+skill의 두 스크립트를 직접 실행할 때는 다음과 같습니다. probe KQL 예시와 Grafana에 직접
+반영하는 명령은 상위 문서의 실습에 있습니다.
+
+```bash
+SKILL=.github/skills/grafana-metrics-dashboard/scripts
+AIID="$(az monitor app-insights component show -g "$RG" -a "$AI" --query id -o tsv)"
+export GRAFANA_URL="$(az grafana show -g "$RG" -n "$GRAFANA" --query properties.endpoint -o tsv)"
+export GRAFANA_TOKEN="$(az account get-access-token \
+  --resource https://dashboard.azure.com --query accessToken -o tsv)"
+
+# 모든 panel query 실행. 지난 구간은 --from/--to(ISO 8601 UTC)를 줍니다.
+python3 $SKILL/verify_panels.py grafana/movielog-dashboard.json --appinsights-id "$AIID"
+
+# 화면 캡처: Node는 스크립트 위치에서 패키지를 찾으므로 Playwright와 같은 임시 폴더에 복사해 실행합니다.
+OUT="$PWD/dashboard.png"; CAP="$(mktemp -d)" && cp $SKILL/capture.mjs "$CAP/"
+(cd "$CAP" && npm i playwright && npx playwright install chromium-headless-shell \
+  && node capture.mjs "/d/movielog-business-metrics/x?orgId=1&from=now-30m&to=now&kiosk" "$OUT")
+```
+
+`now-30m` 같은 상대 범위는 panel마다 query 시각이 조금씩 달라 분 경계에서는
+panel 간 합계가 1분 bin만큼 어긋날 수 있습니다. 문서에 쓸 캡처는 분 단위로 맞춘
+절대 범위(`from=<epoch ms>&to=<epoch ms>`)로 찍습니다.
+
+`capture.mjs`는
+token을 Grafana origin에만 보내고 출력에서 가리며, 내부 scroll 높이에 맞춰 viewport를
+늘립니다. panel 로딩이 60초를 넘거나 query가 실패하거나 화면에 `No data`·`Invalid date`·
+식별자가 보이면 실패로 종료합니다.
+
+Grafana token의 audience는 Microsoft Learn의
+[Managed Grafana data plane 인증 문서](https://learn.microsoft.com/azure/managed-grafana/how-to-authenticate-data-plane-api)대로
+`https://dashboard.azure.com`입니다. 실습 Grafana에서 이 token은 `/api/org`에 200을 받았고,
+`https://grafana.azure.com` token은 401로 거부됐습니다.
+
+`--appinsights-id`로 만든 JSON은 resource ID 변수를 숨기므로 저장소에 커밋하지
+않습니다.
+
+## 정리
+
+```bash
+az group delete -n "$RG" --yes --no-wait
+```

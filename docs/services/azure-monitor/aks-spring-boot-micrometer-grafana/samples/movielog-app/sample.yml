@@ -1,0 +1,9 @@
+title: MovieLog on AKS with Micrometer custom metrics
+description: Spring Boot 4.1 MovieLog app, AKS autoinstrumentation manifests, Application Insights Java 3.7.10 init image, load generator, and a GitHub Copilot skill that builds and verifies a Grafana dashboard from customMetrics.
+kind: runnable
+used_by:
+  - index
+  - movielog-lab
+publish:
+  - source: grafana/movielog-dashboard.json
+    target: downloads/movielog-dashboard.json

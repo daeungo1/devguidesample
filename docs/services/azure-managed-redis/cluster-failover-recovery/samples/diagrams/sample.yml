@@ -1,0 +1,8 @@
+title: Failover incident diagram
+description: Editable explanatory model for the historical reconnect failure.
+kind: artifact
+used_by:
+- index
+publish:
+- source: failover-incident.svg
+  target: images/failover-incident.svg

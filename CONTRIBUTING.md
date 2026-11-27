@@ -1,9 +1,24 @@
 # 기여하기
 
-새 공개 문서는
+새 공개 기술 문서는
 `docs/services/<service>/<topic>[/<child>]/index.md`에 추가합니다.
 `document_type`은 `case`, `guide`, `lab`, `research` 중 문서의 수명주기에
 맞게 선택하지만 물리 폴더에는 사용하지 않습니다.
+
+문서 제목과 절 제목은 문장이 아니라 **핵심 용어로 구성한 명사구**로 씁니다.
+서술 어미로 끝나는 문장 대신 대상과 측면을 드러내는 용어를 쓰고, 결론은 절의
+첫 문장에서 밝힙니다.
+[핵심 용어 제목 기준](docs/contributing/index.md#content-first-headings)에 따라
+제목만 읽어도 각 절의 대상과 측면이 드러나는지 검토합니다.
+
+topic entry는 첫 절 본문에서 **주제의 핵심 메시지와 실제 실행 결과**를 먼저
+보여 주고, 실습 절차는 자식 문서로 링크합니다. 버전 호환 같은 부수 제약은
+하단에 요약해 전담 문서로 연결합니다.
+[topic entry 구성 기준](docs/contributing/index.md#topic-entry-message)을 따릅니다.
+
+자동화가 생성하는 `Azure Daily Update`만
+`docs/azure-daily-update/YYYY-MM-DD/index.md`를 사용합니다. 상세한
+front matter와 날짜 규칙은 공개 문서 작성 계약을 따릅니다.
 
 `tags`에는 taxonomy의 목적·주제 통제 태그를 1–4개 지정하고 목적을 먼저
 배치합니다. 중복 태그나 기술을 대신하는 태그는 추가하지 않습니다.
@@ -17,9 +32,12 @@ taxonomy의 `legacy_tag_redirects`에서 관리합니다.
 초기화에서도 보존합니다.
 
 실행 코드, 배포 매니페스트와 결과물은
-`docs/services/<service>/<topic>/samples/<sample>/`에 `sample.yml`과
-`README.md`를 포함해 둡니다. 최상위 collection 폴더와 `samples/`에는 새
-공개 콘텐츠를 추가하지 않습니다.
+`docs/services/<service>/<topic>/samples/<sample>/`에 둡니다. `runnable`·`artifact`
+sample은 `sample.yml`과 `README.md`를 포함합니다. 컨테이너 이미지로 빌드하는 애플리케이션
+코드는 앱별 공개 코드 레포에 두고, 문서 레포의 sample에는 `kind: external`
+`sample.yml`과 릴리스 commit에 고정한 git submodule `source`만 둡니다. external sample의
+README는 코드 레포가 가지므로 문서 레포에 `README.md`를 두지 않습니다. 최상위 collection
+폴더와 `samples/`에는 새 공개 콘텐츠를 추가하지 않습니다.
 
 문서 유형, topic/child 순서, redirect, sample manifest, 메타데이터, 이미지,
 공개 안전성의 단일 기준은
@@ -39,9 +57,7 @@ python scripts/docs/validate_links.py
 python scripts/docs/validate_public_safety.py
 mkdocs build --strict
 python scripts/docs/validate_search_index.py
-python scripts/docs/audit_pre_pages.py
 ```
 
-이 감사는 과거 공개 콘텐츠와 호환 URL 보존을 확인하며 전체 Git 이력이
-필요합니다. 자세한 기준과 실행 지침은
+자세한 기준과 실행 지침은
 [상세 기여 지침](docs/contributing/index.md)을 따릅니다.

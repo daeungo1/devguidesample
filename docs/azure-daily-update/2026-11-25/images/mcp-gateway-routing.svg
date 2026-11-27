@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420" role="img" aria-labelledby="gw-title gw-desc">
+  <title id="gw-title">Foundry Agent Service의 MCP tool 호출을 gateway로 경유하는 구성</title>
+  <desc id="gw-desc">관리자가 gateway에 MCP route를 먼저 구성하고 Foundry tool에 gateway-routed endpoint를 입력한다. agent의 tool 호출은 gateway에서 접근 제어와 정책을 거쳐 백엔드 MCP 서버로 전달되고, gateway는 로그와 trace를 남긴다.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0L8 3L0 6Z" fill="#2563eb"/></marker>
+    <marker id="arrow-dash" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0 0L8 3L0 6Z" fill="#475569"/></marker>
+    <style>text{font-family:Arial,'Apple SD Gothic Neo',sans-serif;fill:#172554;font-size:20px}.heading{font-size:26px;font-weight:700}.detail{font-size:17px}.box{fill:#f8fafc;stroke:#cbd5e1}.gw{fill:#eff6ff;stroke:#2563eb;stroke-width:2}.flow{fill:none;stroke:#2563eb;stroke-width:3;marker-end:url(#arrow)}.side{fill:none;stroke:#475569;stroke-width:2;stroke-dasharray:6 4;marker-end:url(#arrow-dash)}</style>
+  </defs>
+  <rect width="960" height="420" fill="#fff"/>
+  <text x="40" y="44" class="heading">직접 URL 대신 gateway-routed endpoint를 등록</text>
+  <rect x="40" y="90" width="230" height="130" rx="8" class="box"/>
+  <text x="60" y="128">Foundry agent</text>
+  <text x="60" y="160" class="detail">MCP tool 설정에</text>
+  <text x="60" y="184" class="detail">gateway endpoint 입력</text>
+  <rect x="365" y="70" width="270" height="170" rx="8" class="gw"/>
+  <text x="385" y="108">AI Gateway 또는</text>
+  <text x="385" y="134">Azure API Management</text>
+  <text x="385" y="170" class="detail">MCP route · 접근 제어</text>
+  <text x="385" y="194" class="detail">rate limit · IP 제한 등 정책</text>
+  <rect x="730" y="90" width="190" height="130" rx="8" class="box"/>
+  <text x="750" y="128">백엔드</text>
+  <text x="750" y="156">MCP 서버</text>
+  <path d="M270 155H355" class="flow"/>
+  <path d="M635 155H720" class="flow"/>
+  <rect x="365" y="310" width="270" height="70" rx="8" class="box"/>
+  <text x="385" y="340" class="detail">gateway 로그·trace</text>
+  <text x="385" y="364" class="detail">tool 호출, 정책 결과, 라우팅</text>
+  <path d="M500 240V300" class="side"/>
+  <rect x="40" y="310" width="270" height="70" rx="8" class="box"/>
+  <text x="60" y="340" class="detail">먼저 gateway에서 route 구성</text>
+  <text x="60" y="364" class="detail">Foundry는 자동 등록하지 않음</text>
+</svg>

@@ -22,10 +22,14 @@ Azure 기반 시스템의 설계·구현·운영 기록을 공유합니다. 실�
 
 모든 주제 목록은 파일로 중복 관리하지 않습니다. 올바른 폴더와 front matter를 사용하면 Pages 메뉴, 서비스 색인과 글 찾기에 자동으로 포함됩니다. 기존 `/tags/`, `/articles/` 및 이전 태그 주소는 검색·메뉴에서 제외된 글 찾기 redirect로 유지합니다.
 
-공개 문서의 canonical 원본은
+공개 기술 문서의 canonical 원본은
 `docs/services/<service>/<topic>[/<child>]/index.md` topic package입니다.
 실행 코드와 결과물은 해당 topic의 `samples/<sample>/`에 두며, 최상위
-collection 폴더나 `samples/`에는 새 공개 콘텐츠를 추가하지 않습니다.
+collection 폴더나 `samples/`에는 새 공개 콘텐츠를 추가하지 않습니다. 컨테이너 이미지로 빌드하는
+애플리케이션은 별도 코드 레포에 두고 `samples/<sample>/source` git submodule과
+`sample.yml`로 릴리스 버전을 가리킵니다.
+자동 생성되는 `Azure Daily Update`는 예외적으로
+`docs/azure-daily-update/YYYY-MM-DD/index.md`에 날짜별로 보관합니다.
 
 ## 로컬 미리보기
 
@@ -37,8 +41,5 @@ python -m venv .venv
 
 자세한 작성·검증 규칙은
 [공개 문서 작성 계약](docs/contributing/index.md)을 확인하세요.
-검색 인덱스 검증 다음에는 `python scripts/docs/audit_pre_pages.py`를
-실행하며, 이 감사는 전체 Git 이력이 필요합니다. 자세한 기준과 실행 지침도
-[공개 문서 작성 계약](docs/contributing/index.md)에서 확인하세요.
 
 > 이 저장소와 Pages는 공개되어 있습니다. 고객·사용자 식별자, 구독·테넌트 ID, 비밀, 내부 URL 또는 승인되지 않은 화면 캡처를 커밋하지 마세요.

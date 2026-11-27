@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from functools import partial
 from html import escape
+import json
 from pathlib import Path, PurePosixPath
 import posixpath
 import re
@@ -15,6 +17,7 @@ from mkdocs.structure.files import File, InclusionLevel
 from mkdocs.structure import StructureItem
 from mkdocs.structure.nav import Navigation, Section
 from mkdocs.structure.pages import Page
+from mkdocs.utils import get_relative_url
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -22,6 +25,11 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from scripts.docs.content import load_taxonomy
+from scripts.docs.daily_updates import (
+    build_daily_update_calendar,
+    is_publishable_daily_update_path,
+    load_daily_update_reports,
+)
 from scripts.docs.generate_indexes import build_tag_links
 from scripts.docs.explore import filter_redirect_targets
 from scripts.docs.topics import TopicCatalog, build_topic_catalog, iter_topic_documents
@@ -55,6 +63,12 @@ def on_files(files: Any, config: Mapping[str, Any]) -> Any:
     for file in list(files):
         src_uri = getattr(file, "src_uri", "")
         if isinstance(src_uri, str) and "/samples/" in src_uri:
+            file.inclusion = InclusionLevel.EXCLUDED
+        elif (
+            isinstance(src_uri, str)
+            and src_uri.startswith("azure-daily-update/")
+            and not is_publishable_daily_update_path(src_uri)
+        ):
             file.inclusion = InclusionLevel.EXCLUDED
         elif catalog is not None and PurePosixPath(src_uri) in catalog.published_assets:
             if file.is_documentation_page():
@@ -132,17 +146,30 @@ def _sample_cards(document_path: PurePosixPath, catalog: TopicCatalog, config: M
         '<section class="dg-related-samples" aria-label="관련 샘플" data-search-exclude="true">'
     ]
     cards.append('<p class="dg-eyebrow">RELATED SAMPLES</p>')
-    cards.append('<div class="dg-sample-grid" markdown="1">')
+    cards.append('<div class="dg-sample-grid">')
     for sample in samples:
-        href = (
+        # External samples live in their own repository at the pinned release; others under this repository.
+        href = sample.source_url or (
             f"{repo_url}/tree/main/"
             f"{(docs_prefix + '/' if docs_prefix else '')}{sample.relative_path.as_posix()}"
         )
-        cards.append('<article class="dg-sample-card" markdown="1">')
-        cards.append(f"### [{escape(sample.title)}]({escape(href, quote=True)})")
-        cards.append("")
+        cards.append('<article class="dg-sample-card">')
+        cards.append(
+            f'<h3><a href="{escape(href, quote=True)}">{escape(sample.title)}</a></h3>'
+        )
         cards.append(f'<p class="dg-doc-summary">{escape(sample.description)}</p>')
-        cards.append(f'<p class="dg-card-count">{escape(sample.kind)}</p>')
+        label = f"{sample.kind} · {sample.ref}" if sample.ref else sample.kind
+        cards.append(f'<p class="dg-card-count">{escape(label)}</p>')
+        if sample.release_url:
+            # An external sample is a sub project: its own repository, release notes and container image.
+            links = [
+                f'<a href="{escape(sample.source_url, quote=True)}">코드</a>',
+                f'<a href="{escape(sample.release_url, quote=True)}">릴리스</a>',
+            ]
+            if sample.image:
+                # The full reference keeps the digest, so a copied value pulls exactly the pinned image.
+                links.append(f"<code>{escape(sample.image)}</code>")
+            cards.append(f'<p class="dg-sample-links">{" · ".join(links)}</p>')
         cards.append("</article>")
         cards.append("")
     cards.append("</div>")
@@ -378,30 +405,68 @@ def on_page_markdown(markdown: str, page: Any, config: Mapping[str, Any], files:
 
 
 def on_env(env: Any, config: Mapping[str, Any], files: Any) -> Any:
-    """Keep Material's sharing anchor without its executable placeholder URL."""
+    """Adapt Material navigation and keep its sharing anchor non-executable."""
     theme = config.get("theme", {})
-    if theme.get("name") != "material" or "search.share" not in theme.get("features", []):
+    if theme.get("name") != "material":
         return env
-    template = "partials/search.html"
-    source, _, _ = env.loader.get_source(env, template)
-    safe_source = re.sub(
-        r'<a\b[^>]*data-md-component="search-share"[^>]*>',
-        lambda match: match[0].replace('href="javascript:void(0)"', 'href="#"'),
-        source,
-    )
-    if safe_source != source:
-        env.loader = ChoiceLoader([DictLoader({template: safe_source}), env.loader])
+
+    templates: dict[str, str] = {}
+    docs_dir = config.get("docs_dir")
+    if isinstance(docs_dir, str):
+        template = "partials/nav-item.html"
+        source, _, _ = env.loader.get_source(env, template)
+        templates["partials/dg-material-nav-item.html"] = source
+        templates[template] = (
+            Path(__file__).with_name("templates") / "daily-update-nav.html"
+        ).read_text(encoding="utf-8")
+        env.globals["daily_update_calendar"] = partial(
+            build_daily_update_calendar, load_daily_update_reports(docs_dir)
+        )
+
+    if "search.share" in theme.get("features", []):
+        template = "partials/search.html"
+        source, _, _ = env.loader.get_source(env, template)
+        safe_source = re.sub(
+            r'<a\b[^>]*data-md-component="search-share"[^>]*>',
+            lambda match: match[0].replace('href="javascript:void(0)"', 'href="#"'),
+            source,
+        )
+        if safe_source != source:
+            templates[template] = safe_source
+
+    if templates:
+        env.loader = ChoiceLoader([DictLoader(templates), env.loader])
         if env.cache is not None:
             env.cache.clear()
     return env
 
 
 def on_post_page(output: str, page: Any, config: Mapping[str, Any]) -> str:
-    """Move generated redirect metadata into the final HTML head."""
+    """Advertise the daily feed and move redirect metadata into the HTML head."""
     page_file = getattr(page, "file", None)
     src_uri = getattr(page_file, "src_uri", None)
     if not isinstance(src_uri, str):
         return output
+    head_match = re.search(r"<head>(.*?)</head>", output, flags=re.DOTALL)
+    head_html = head_match.group(1) if head_match else ""
+    if (
+        src_uri.startswith("azure-daily-update/")
+        and "application/rss+xml" not in head_html
+    ):
+        raw_site_url = config.get("site_url")
+        if raw_site_url:
+            site_url = str(raw_site_url).rstrip("/")
+            feed_url = site_url + "/azure-daily-update/feed.xml"
+        else:
+            feed_url = get_relative_url(
+                "azure-daily-update/feed.xml",
+                src_uri,
+            )
+        feed_link = (
+            '<link rel="alternate" type="application/rss+xml" '
+            f'title="Azure Daily Update" href="{escape(feed_url, quote=True)}">'
+        )
+        output = output.replace("</head>", feed_link + "\n</head>", 1)
 
     catalog = _topic_catalog_from_config(config)
     if catalog is None:
@@ -433,6 +498,13 @@ def on_post_page(output: str, page: Any, config: Mapping[str, Any]) -> str:
     head_match = re.search(r"<head>(.*?)</head>", output, flags=re.DOTALL)
     head_html = head_match.group(1) if head_match else ""
     additions: list[str] = []
+    if canonical_path is not None and 'id="dg-document-redirect"' not in head_html:
+        script_target = json.dumps(destination).replace("<", "\\u003c")
+        additions.append(
+            '<script id="dg-document-redirect">'
+            f"location.replace({script_target} + location.search + location.hash);"
+            "</script>"
+        )
     if 'rel="canonical"' not in head_html:
         additions.append(f'<link rel="canonical" href="{target}">')
     if f'content="0; url={target}"' not in head_html:
